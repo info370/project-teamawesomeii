@@ -1,4 +1,4 @@
-computers <- read.csv("pilotStudy.csv")
+computers <- read.csv("./PilotStudy2Responses.csv")
 library(ggplot2)
 library(dplyr)
 ggplot(data=computers) + geom_bar(mapping=aes(x=What.operating.system.do.you.primarily.use.)) + ggtitle("What Operating System Do You Use?")
