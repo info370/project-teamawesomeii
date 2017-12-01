@@ -15,7 +15,7 @@ if(!require(caret)){install.packages("caret", dependencies = c("Depends", "Sugge
 
 # load data
 mich_data <- read.csv("./gpa1.csv")
-mich_data <- mich_data %>% select(-X)
+mich_data <- mich_data %>% dplyr::select(-X)
 low_drink <- mich_data %>% filter(alcohol < 3)
 high_drink <- mich_data %>% filter(alcohol >= 3)
 
@@ -28,13 +28,13 @@ low_plot <- ggplot(low_drink, aes(x = alcohol, y = colGPA))  +
 high_plot <- ggplot(high_drink, aes(x = alcohol, y = colGPA))  +
   geom_point()
 
-# Feature selection
+# Feature dplyr::selection
 
 # all data
 control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
-colGPA_features <- mich_data %>% select(-hsGPA)
+colGPA_features <- mich_data %>% dplyr::select(-hsGPA)
 
-model1 <- train(colGPA ~., data=colGPA_features, method = "knn", trControl = control)
+model1 <- train(colGPA ~., data=mich_data, method = "knn", trControl = control)
 
 importance1 <- varImp(model1)
 
@@ -42,7 +42,7 @@ ggplot(importance1)
 
 # low
 control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
-colGPA_features_low <- low_drink %>% select(-hsGPA)
+colGPA_features_low <- low_drink %>% dplyr::select(-hsGPA)
 
 model_low <- train(colGPA ~., data=colGPA_features_low, method = "knn", trControl = control)
 
@@ -52,7 +52,7 @@ ggplot(importance_low)
 
 # high
 control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
-colGPA_features_high <- high_drink %>% select(-hsGPA)
+colGPA_features_high <- high_drink %>% dplyr::select(-hsGPA)
 
 model_high <- train(colGPA ~., data=colGPA_features_high, method = "knn", trControl = control)
 

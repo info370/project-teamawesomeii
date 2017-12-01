@@ -32,11 +32,11 @@ p + geom_boxplot(width=0.1)
 
 
 # Feature selection
-student_data <- student_data %>% select(-failures)
-G1_features <- student_data %>% select(-G2, -G3)
-G2_features <- student_data %>% select(-G1, -G3)
-G3_features <- student_data %>% select(-G1, -G2)
-Dalc_features <- student_data %>% select(-Walc)
+student_data <- student_data %>% dplyr::select(-failures)
+G1_features <- student_data %>% dplyr::select(-G2, -G3)
+G2_features <- student_data %>% dplyr::select(-G1, -G3)
+G3_features <- student_data %>% dplyr::select(-G1, -G2)
+Dalc_features <- student_data %>% dplyr::select(-Walc)
 control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
 
 model1 <- train(G1 ~., data=G1_features, method = "knn", trControl = control)
@@ -45,11 +45,15 @@ model3 <- train(G3 ~., data=G3_features, method = "knn", trControl = control)
 
 alc_model <- train(Dalc ~., data=Dalc_features, method = "knn", trControl = control)
 
+model <- train(G3 ~., data=student_data, method = "knn", trControl = control)
+
 importance1 <- varImp(model1)
 importance2 <- varImp(model2)
 importance3 <- varImp(model3)
 importance_alc <- varImp(alc_model)
+importance <- varImp(model)
 
+ggplot(importance)
 ggplot(importance1)
 ggplot(importance2)
 ggplot(importance3)
