@@ -2,77 +2,119 @@ if(!require(mlbench)){install.packages("mlbench"); require(mlbench)} # common da
 if(!require(tidyverse)){install.packages("tidyverse"); library(tidyverse)} 
 if(!require(modelr)){install.packages("modelr"); library(modelr)} 
 
-# some dependencies for caret that aren't automatically installed
-if(!require(ModelMetrics)){install.packages("ModelMetrics"); require(ModelMetrics)}
-if(!require(recipes)){install.packages("recipes"); require(recipes)}
-if(!require(DEoptimR)){install.packages("DEoptimR"); require(DEoptimR)}
-
 if(!require(caret)){install.packages("caret"); require(caret)} # ML package WITHOUT its dependencies. Should not take as long
 if(!require(dplyr)){install.packages("dplyr"); require(dplyr)}
+if(!require(broom)){install.packages("broom"); require(broom)}
 set.seed(370)
 
 if(!require(caret)){install.packages("caret", dependencies = c("Depends", "Suggests")); require(caret)}
 
 # load data
-student_data <- read.csv("./student-mat.csv")
+uci_data <- read.csv("./student-mat.csv", stringsAsFactors = FALSE)
 
-# Violin plot
+# Violin plots
 
 # Dalc data
-student_data$Dalc <- as.factor(student_data$Dalc)
-p <- ggplot(student_data, aes(x = Dalc, y = G3)) + 
+uci_data$Dalc <- as.factor(uci_data$Dalc)
+p <- ggplot(uci_data, aes(x = Dalc, y = G3)) + 
   geom_violin(trim = FALSE)
 p + geom_boxplot(width=0.1)
 
 # Walc data
-student_data$Walc <- as.factor(student_data$Walc)
-p <- ggplot(student_data, aes(x = Walc, y = G3)) + 
+uci_data$Walc <- as.factor(uci_data$Walc)
+p <- ggplot(uci_data, aes(x = Walc, y = G3)) + 
   geom_violin(trim = FALSE)
 p + geom_boxplot(width=0.1)
 
-
-# Feature selection
-student_data <- student_data %>% dplyr::select(-failures)
-G1_features <- student_data %>% dplyr::select(-G2, -G3)
-G2_features <- student_data %>% dplyr::select(-G1, -G3)
-G3_features <- student_data %>% dplyr::select(-G1, -G2)
-Dalc_features <- student_data %>% dplyr::select(-Walc)
+# Feature selection for whole dataset
+uci_data <- uci_data %>% dplyr::select(-failures)
+final_grade_features <- uci_data %>% dplyr::select(-G1, -G2)
 control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
 
-model1 <- train(G1 ~., data=G1_features, method = "knn", trControl = control)
-model2 <- train(G2 ~., data=G2_features, method = "knn", trControl = control)
-model3 <- train(G3 ~., data=G3_features, method = "knn", trControl = control)
+model <- train(G3 ~., data=final_grade_features, method = "knn", trControl = control)
 
-alc_model <- train(Dalc ~., data=Dalc_features, method = "knn", trControl = control)
-
-model <- train(G3 ~., data=student_data, method = "knn", trControl = control)
-
-importance1 <- varImp(model1)
-importance2 <- varImp(model2)
-importance3 <- varImp(model3)
-importance_alc <- varImp(alc_model)
 importance <- varImp(model)
 
 ggplot(importance)
-ggplot(importance1)
-ggplot(importance2)
-ggplot(importance3)
-ggplot(importance_alc)
+# absences is the most important feature
+
+# model for absences
+linear_model <- lm(G3 ~ absences, data=uci_data)
+parameters = tidy(linear_model)$estimate
+uci_data <- uci_data %>%
+  mutate(
+    linear_model_prediction = parameters[1] + parameters[2] * uci_data$absences
+  )
+
+ggplot(uci_data , aes(absences)) +
+  geom_point(aes(y= G3)) +
+  geom_line(aes(y= linear_model_prediction), color = "red")
+
+model_linear_function <- function(a, data) {
+  a[1] + data$absences * a[2]
+}
+
+model_function = model_linear_function
+measure_distance <- function(mod_params, data) {
+  diff <- data$G3 - model_function(mod_params, data)
+  sqrt(mean(diff ^ 2))
+}
+
+# Here's a line fit with the objective function that lm uses - squares of the residuals
+best <- optim(c(0, 0), measure_distance, data = uci_data)
+
+# values for the coefficients
+best$par
+# compare to coefficients of lm()
+parameters
+
+measure_distance_mad <- function(mod_params, data) {
+  diff <- data$G3 - model_function(mod_params, data)
+  mean(abs(diff))
+}
+
+# make use of a different distance function here (such as mean absolute)
+mad_fit <- optim(c(0, 0), measure_distance_mad, data = uci_data)
+mad_fit$par
+
+uci_data <- uci_data %>%
+  mutate(lm_mad = mad_fit$par[1] + mad_fit$par[2] * uci_data$absences)
+
+uci_data <- uci_data %>% 
+  mutate(
+    residuals_mad = G3 - lm_mad,
+    residuals = G3 - linear_model_prediction
+  )
+
+# plot residuals
+ggplot(uci_data, aes(absences)) +
+  geom_point(aes(y=residuals)) + 
+  geom_point(aes(y=residuals_mad), color = "red") +
+  geom_abline(intercept=0, slope = 0)
+
+summary(linear_model)
 
 
-# splitting boston data into train+validate and test sets
 
-split_proportion = 0.8 # specify proportion of data used for training
+# create dummy variables for Dalc
+uci_data$Dalc <- as.factor(uci_data$Dalc)
+dmy <- dummyVars("~ Dalc", data=uci_data)
+dmy_df <- data.frame(predict(dmy, newdata = uci_data), uci_data$G3)
+colnames(dmy_df)[6] <- "G3"
 
-# select outcome variable
-outcome <- student_data %>% dplyr::select(G3)
+predict(dmy, uci_data)
 
-# randomly select indices for train/validate set
-train_ind <- createDataPartition(outcome$G3, p = split_proportion, list = FALSE)
-student_data_train <- student_data[train_ind,] # get training data
-student_data_test <- student_data[-train_ind,] # get test data
+# feature selection using dummy variables
+control <- trainControl(method = "repeatedcv", number=10, repeats = 3)
+model <- train(G3 ~ ., data=dmy_df, method = "knn", trControl = control)
+importance <- varImp(model)
+ggplot(importance)
 
-student_test_x <- student_data %>% dplyr::select(-G3) # select predictor data for test set
-student_test_y <- student_data %>% dplyr::select(G3) # select outcome data for test set
-
-ctrl <- trainControl(method = "cv", number=5)
+G3_features <- uci_data %>% 
+  mutate(Dalc.1 = dmy_df$Dalc.1, Dalc.2 = dmy_df$Dalc.2, Dalc.3 = dmy_df$Dalc.3,
+         Dalc.4 = dmy_df$Dalc.4, Dalc.5 = dmy_df$Dalc.5) %>% 
+  dplyr::select(-G1, -G2)
+control <- trainControl(method = "repeatedcv", number=10, repeats = 3)
+model <- train(G3 ~ ., data=G3_features, method = "knn", trControl = control)
+importance <- varImp(model)
+ggplot(importance)
