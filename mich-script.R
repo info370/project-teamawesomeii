@@ -10,7 +10,7 @@ if(!require(DEoptimR)){install.packages("DEoptimR"); require(DEoptimR)}
 if(!require(caret)){install.packages("caret"); require(caret)} # ML package WITHOUT its dependencies. Should not take as long
 if(!require(dplyr)){install.packages("dplyr"); require(dplyr)}
 set.seed(370)
-
+if(!require(glmnet)){install.packages("glmnet"); require(glmnet)}
 if(!require(caret)){install.packages("caret", dependencies = c("Depends", "Suggests")); require(caret)}
 
 # load data
@@ -63,3 +63,25 @@ ggplot(importance_high)
 # tests
 
 # try t-test for low vs high groups
+
+#model
+
+p <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=colGPA)) 
+p + geom_abline(slope=0.004655, intercept=3.047889)
+
+#basic linear model
+
+linearMod <- lm(colGPA ~ alcohol, data=mich_data)
+linearMod
+
+alc <- mich_data$alcohol
+gpa <- mich_data$colGPA
+cor(alc,gpa)
+
+# glmnet_grid <- expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),
+#                            lambda = c(1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1,1))
+# glmnet_ctrl <- trainControl(method="cv", number=5)
+# glmnet_fit <- train(colGPA ~ ., data=mich_data,
+#                     method="glmnet",
+#                     tuneGrid=glmnet_grid,
+#                     trControl=glmnet_ctrl)
