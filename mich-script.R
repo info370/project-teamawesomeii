@@ -93,6 +93,12 @@ gpa <- mich_data$colGPA
 skip <- mich_data$skipped
 cor(skip,gpa)
 
+#residual plot
+mich_data$predAlc <- .004655*mich_data$alcohol + 3.047889
+mich_data$residGPA <- mich_data$colGPA - mich_data$predAlc
+p3 <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=residGPA))
+p3+geom_abline(slope=0, intercept = 0, color="red")
+
 #splines modeling
 # mod2 <- lm(colGPA ~ ns(alcohol, 2), data=mich_data)
 # mod3 <- lm(colGPA ~ ns(alcohol, 3), data=mich_data)
