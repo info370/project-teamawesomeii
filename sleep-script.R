@@ -89,14 +89,80 @@ sleep_data_small <- sleep_data_small %>%
 
 
 # plot the residuals to compare them
-ggplot(sleep_data_small, aes(Drinks)) +
+ggplot(sleep_data_small, aes(ClassesMissed)) +
   geom_point(aes(y=residuals)) + 
   geom_point(aes(y=residuals_mad), color = "red") +
   geom_abline(intercept=0, slope = 0)
 
 summary(linear_model)
+cor(sleep_data$ClassesMissed, sleep_data$GPA)
+cor(sleep_data$Drinks, sleep_data$GPA)
+cor(sleep_data$ClassesMissed, sleep_data$Drinks)
 
 
+
+
+#CLass_skipped analysis
+
+linear_model <- lm (GPA ~ ClassesMissed, data = sleep_data)
+
+parameters <- tidy(linear_model)$estimate
+
+sleep_data_small <- sleep_data %>%
+  #mutate(GPA_negation = 4.0 - sleep_data$GPA) %>%
+  dplyr::select(ClassesMissed, GPA) %>%
+  mutate(linear_model_prediction = parameters[1] + parameters[2] * sleep_data$ClassesMissed)
+
+#head(sleep_data)
+
+ggplot(sleep_data_small , aes(ClassesMissed)) +
+  geom_point(aes(y= GPA), size = 1) +
+  geom_line(aes(y= linear_model_prediction), size = 1, colour = "grey30")
+
+model_linear_function <- function(a, data) {
+  a[1] + data$ClassesMissed * a[2]
+}
+
+model_function = model_linear_function
+measure_distance <- function(mod_params, data) {
+  diff <- data$GPA - model_function(mod_params, data)
+  sqrt(mean(diff ^ 2))
+}
+
+# Here's a line fit with the objective function that lm uses - squares of the residuals
+best <- optim(c(3.4, 0), measure_distance, data = sleep_data_small)
+
+
+# values for the coefficients
+parameters
+best$par
+
+measure_distance_mad <- function(mod_params, data) {
+  diff <- data$GPA - model_function(mod_params, data)
+  mean(abs(diff))
+}
+
+# make use of a different distance function here (such as mean absolute)
+mad_fit <- optim(c(3.4, 0), measure_distance_mad, data = sleep_data_small)
+mad_fit$par
+
+sleep_data_small <- sleep_data_small %>%
+  mutate(lm_mad = mad_fit$par[1] + mad_fit$par[2] * sleep_data$ClassesMissed)
+
+sleep_data_small <- sleep_data_small %>% 
+  mutate(
+    residuals_mad = GPA - lm_mad,
+    residuals = GPA - linear_model_prediction
+  )
+
+
+# plot the residuals to compare them
+ggplot(sleep_data_small, aes(ClassesMissed)) +
+  geom_point(aes(y=residuals)) + 
+  geom_point(aes(y=residuals_mad), color = "red") +
+  geom_abline(intercept=0, slope = 0)
+
+summary(linear_model)
 
 
 
