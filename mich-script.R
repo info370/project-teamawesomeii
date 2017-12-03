@@ -12,6 +12,9 @@ if(!require(dplyr)){install.packages("dplyr"); require(dplyr)}
 set.seed(370)
 if(!require(glmnet)){install.packages("glmnet"); require(glmnet)}
 if(!require(caret)){install.packages("caret", dependencies = c("Depends", "Suggests")); require(caret)}
+if(!require(splines)){install.packages("splines"); require(splines)}
+if(!require(DAAG)){install.packages("DAAG"); require(DAAG)}
+
 
 # load data
 mich_data <- read.csv("./gpa1.csv")
@@ -23,6 +26,7 @@ high_drink <- mich_data %>% filter(alcohol >= 3)
 
 all_plot <- ggplot(mich_data, aes(x = alcohol, y = colGPA))  +
   geom_point()
+all_plot
 low_plot <- ggplot(low_drink, aes(x = alcohol, y = colGPA))  +
   geom_point()
 high_plot <- ggplot(high_drink, aes(x = alcohol, y = colGPA))  +
@@ -34,7 +38,7 @@ high_plot <- ggplot(high_drink, aes(x = alcohol, y = colGPA))  +
 control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
 colGPA_features <- mich_data %>% dplyr::select(-hsGPA)
 
-model1 <- train(colGPA ~., data=mich_data, method = "knn", trControl = control)
+model1 <- train(colGPA ~., data=colGPA_features, method = "knn", trControl = control)
 
 importance1 <- varImp(model1)
 
@@ -57,14 +61,23 @@ colGPA_features_high <- high_drink %>% dplyr::select(-hsGPA)
 model_high <- train(colGPA ~., data=colGPA_features_high, method = "knn", trControl = control)
 
 importance_high <- varImp(model_high)
-
+predictors(importance_high)
 ggplot(importance_high)
-
+selected_features_high <- c("ACT", "greek", "PC", "siblings", "bgfriend","voluntr")
 # tests
 
 # try t-test for low vs high groups
 
 #model
+
+# skipped classes plot
+skip_plot <- ggplot(mich_data, aes(x = skipped, y = colGPA, size=alcohol))  +
+  geom_point()
+skip_plot
+linearMod_skip <- lm(colGPA ~ skipped, data=mich_data)
+linearMod_skip
+summary(linearMod_skip)
+skip_plot + geom_abline(slope=-0.08952, intercept = 3.15308)
 
 p <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=colGPA)) 
 p + geom_abline(slope=0.004655, intercept=3.047889)
@@ -74,14 +87,27 @@ p + geom_abline(slope=0.004655, intercept=3.047889)
 linearMod <- lm(colGPA ~ alcohol, data=mich_data)
 linearMod
 
+#correlation
 alc <- mich_data$alcohol
 gpa <- mich_data$colGPA
-cor(alc,gpa)
+skip <- mich_data$skipped
+cor(skip,gpa)
 
-# glmnet_grid <- expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),
-#                            lambda = c(1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1,1))
-# glmnet_ctrl <- trainControl(method="cv", number=5)
-# glmnet_fit <- train(colGPA ~ ., data=mich_data,
-#                     method="glmnet",
-#                     tuneGrid=glmnet_grid,
-#                     trControl=glmnet_ctrl)
+#splines modeling
+# mod2 <- lm(colGPA ~ ns(alcohol, 2), data=mich_data)
+# mod3 <- lm(colGPA ~ ns(alcohol, 3), data=mich_data)
+# mod4 <- lm(colGPA ~ ns(alcohol, 4), data=mich_data)
+# mod5 <- lm(colGPA ~ ns(alcohol, 5), data=mich_data)
+# mod10 <- lm(colGPA ~ ns(alcohol, 10), data=mich_data)
+# mod20 <- lm(colGPA ~ ns(alcohol, 20), data=mich_data)
+
+# k-fold cross validation
+
+
+ # glmnet_grid <- expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),
+ #                            lambda = c(1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1,1))
+ # glmnet_ctrl <- trainControl(method="cv", number=5)
+ # glmnet_fit <- train(colGPA ~ ., data=mich_data[,c(selected_features_high, "colGPA")],
+ #                     method="glmnet",
+ #                    tuneGrid=glmnet_grid,
+ #                    trControl=glmnet_ctrl)
