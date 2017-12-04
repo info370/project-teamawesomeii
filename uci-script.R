@@ -14,11 +14,20 @@ uci_data <- read.csv("./student-mat.csv", stringsAsFactors = FALSE)
 
 # Violin plots
 
+# Estimate a linear regression model
+dalc_linear_model <- lm(G3 ~ Dalc, data=uci_data)
+cf <- coef(dalc_linear_model)
+
 # Dalc data
 uci_data$Dalc <- as.factor(uci_data$Dalc)
 p <- ggplot(uci_data, aes(x = Dalc, y = G3)) + 
-  geom_violin(trim = FALSE)
+  geom_violin(trim = FALSE) +
+  stat_summary(aes(group=1),fun.y=mean, geom="point", color="red", size=3) +
+  geom_abline(slope=cf[2], intercept=cf[1], lwd=.8)
 p + geom_boxplot(width=0.1)
+
+summary(dalc_linear_model)
+cor(as.numeric(uci_data$Dalc), uci_data$G3)
 
 # Walc data
 uci_data$Walc <- as.factor(uci_data$Walc)
@@ -93,7 +102,7 @@ ggplot(uci_data, aes(absences)) +
   geom_abline(intercept=0, slope = 0)
 
 summary(linear_model)
-
+cor(as.numeric(uci_data$absences), uci_data$G3)
 
 
 # create dummy variables for Dalc
