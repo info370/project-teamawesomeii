@@ -19,6 +19,10 @@ rightArrow.addEventListener('click', function (e) {
         currentSlide++;
     }
 
+    if (currentSlide == 4) {
+        rightArrow.style.display = "none";
+    }
+
     updatePosition();
 });
 
