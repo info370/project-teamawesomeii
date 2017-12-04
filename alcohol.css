@@ -3,6 +3,7 @@ body,
 .slides,
 .slide {
     height: 100%;
+    background-color: black;
 }
 
 body {
@@ -17,14 +18,15 @@ body {
 }
 
 .slides {
-    width: 400%;
+    width: 500%;
     position: relative;
     left: 0;
+    
     transition: left 1s;
 }
 
 .slide {
-    width: 25%;
+    width: 20%;
     background-size: cover;
     background-position: center top;
     float: left;
@@ -32,31 +34,16 @@ body {
     color: white;
 }
 
-.slide h2 {
+.slide h1 {
     font-family: 'Roboto Slab', serif;
     font-weight: 900;
-    right: 40px;
-    bottom: 40px;
+    left: 20px;
+    top: 20px;
     position: absolute;
     font-size: 60px;
     margin-bottom: 0px
 }
 
-.california {
-    background-image: url('../img/california.jpg');
-}
-
-.colorado {
-    background-image: url('../img/colorado.jpg');
-}
-
-.fresno {
-    background-image: url('../img/fresno.jpg');
-}
-
-.osu {
-    background-image: url('../img/osu.jpg');
-}
 
 .arrow {
     position: fixed;
@@ -64,16 +51,15 @@ body {
     font-size: 48px;
     cursor: pointer;
     color: white;
-    display: none;
     opacity: .5;
 }
 
-.arrow:hover {
+.choice:hover {
     opacity: 1;
 }
 
-.arrow.active {
-    display: inline;
+#controls {
+    padding-left: 20px;
 }
 
 .fa-chevron-left {

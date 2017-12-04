@@ -1,10 +1,10 @@
 var slides = document.querySelector('.slides');
 
 var leftArrow = document.querySelector('.fa-chevron-left');
-var rightArrow = document.querySelector('.fa-chevron-right');
+var rightArrow = document.querySelector('#controls');
 
 var currentSlide = 0;
-
+/*
 leftArrow.addEventListener('click', function (e) {
     if (currentSlide > 0) {
         currentSlide--;
@@ -12,9 +12,10 @@ leftArrow.addEventListener('click', function (e) {
 
     updatePosition();
 });
+*/
 
 rightArrow.addEventListener('click', function (e) {
-    if (currentSlide < 3) {
+    if (currentSlide < 4) {
         currentSlide++;
     }
 
@@ -29,15 +30,15 @@ function updatePosition() {
         dot.classList.remove('active');
     });
 
-    dots.item(currentSlide).classList.add('active');
-
+    //dots.item(currentSlide).classList.add('active');
+/*
     if (currentSlide > 0) {
         leftArrow.classList.add('active');
     } else {
         leftArrow.classList.remove('active');
     }
-
-    if (currentSlide < 3) {
+*/
+    if (currentSlide < 4) {
         rightArrow.classList.add('active');
     } else {
         rightArrow.classList.remove('active');
