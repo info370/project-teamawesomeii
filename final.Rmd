@@ -1,0 +1,53 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+# Drinking Behaviors
+## Technical Description
+
+by Alyssa Holzer, Austin Hutchinson, Lee Polla, & Suraj Chandrasekhar
+
+## Introduction
+Alsochol is typically perceived as something that hinders performance, like while driving. At the same time, there is this notion of the Ballmer Peak where a few drinks in moderaiton can improve purformance during tasks like writing code. Similarly, there are also mixed opnions about whether or not drinking alcohol influences your sober behavior for better or for worse; like if someone wakes up with a hangover, or another peroson wakes up feeling energized after having fun or destressing. Based on our recommendations, students can make decisions about their drinking habits, such that they peform their best in school.
+
+### Decision Context
+Our research question asks how should students drink throughout the quarter if they want to optimize their GPA.The goal of this study is to help college students make informed decisions about what kinds of drinking behaviors they should adopt over the course of a school term with the ideal outcome being good grades. Some possible decisions college students can make include: abstain from alcohol, consume a moderate amount of alcohol by only drinking on weekends or setting a limit on how much or how often to drink over a period of time, or drink regularly everyday of the week. There are some assumptions that are usually made about alcohol and its effects. These include the assumptions that alcohol can be highly addictive, drinking kills brain cells, has mind altering effects, and is generally not conducive to good performance in school.
+
+For each choose on how much alcohol to consume as a student, there are two distinct outcomes. One is that you get good grades and the other is that you get poor grades. Most students would want to get the best grades they can possibly get.
+
+We are interested in how alcohol will influence students' grades' because we think that much of the other alcohol recommendations that students typically receive is only in terms of health and legality. We think that other students will be more receptive to our recommendations that are based on performance, because they are interested in doing well in school, and the students who don't care about heath or legality issues might be making decisions without being very informed at all. Universities and other educational institutions should also be interested in our results as a means to promote better student performance. Educational institutions will also likely be concenered over alcohol related issues on campuses, so we must be clear in that we are not advising students to participate in underage drinking or posession of alcohol when prohibited.
+
+## Method
+To answer the quesiton of how much college student should drink if they want to optimize their grades, we anlyzed three separate datasets on other research related to student term grades and their drinking factors, and include several other possibly related factors.
+Our first dataset was found on Kaggle and contains survey data on high school students in a math course in Portugal. This data was collected by the University of California, Irvine. The outcome variable we were interested in for this data is labeled G3, representing the students' final grades for the school term, and is a numeric value ranging from 0 to 20. The predictor variable we were most interested in for this study was Dalc, which represents workday alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption).
+
+<explain michigan dataset>
+
+<explain sleep study dataset>
+
+All three of our datasets were pretty clean to begin with in that they were not missing any entries and the individual observations did not seem inaccurate in any way. After reviewing the datasets, there were some factors that we decided we were not intestested in, which we filtered out. For the Michigan dataset, we decided to separate the data into two groups to see if the most important factors for predicting GPA were different between people who drink a little verusus people who drink a lot.
+
+To analyze the relationship between alcohol and grades, we created linear models for each of the datasets and checked the correlation values between the outcome and predictor varables to check the accuracy of these models. We feel that this method was appropriate because we were primarily interested in whether or not there was a real correlation between the amount of alcohol a student consumes and their grades.
+
+### Limitations
+
+Because we did not collect the data in these three datasets ourselves, it is impossible for us to know exactly the types of drinks people consumed, exactly how frequently they drink throughout a school term, and also how drunk they actually get.
+
+## Data Analysis
+
+### UCI Dataset
+
+```{r}
+# load data
+uci_data <- read.csv("./student-mat.csv", stringsAsFactors = FALSE)
+# violin plots with linear model
+
+# feature selection
+
+# absences vs grades linear model
+```
+
+## Future Work
+
+In more detail, analyze frequency, total alcohol content, and day of week as factors and measure their influence on term grades. Other important factors that we want to explore are the quesitons about what type of alcohol is consumed and whether drinking alcohol will affect performance consistently across different people. The type of drink is important becuase there are many other food chemicals that will have significant effectos on brain activity that should be accounted for. There may also be some relevant and underlying social behavior associated with drinking for different people, so it would also be interesting to pay more attention to the number of drinks a person has, what type of drinks they are having, how often they drink, and their body weight for calculating BAC (standard measure of drunkeness across different people) when collecting data. Future studies should track exactly how much participants drink because different amounts of alcohol affect people differently and some people have different defintitions of what they would consider "light" or "heavy" drinking.
