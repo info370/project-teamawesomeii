@@ -137,7 +137,7 @@ $(document).ready(function () {
 </div>
 <div id="method" class="section level2">
 <h2>Method</h2>
-<p>To answer the quesiton of how much college student should drink if they want to optimize their grades, we anlyzed three separate datasets on other research related to student term grades and their drinking factors, and include several other possibly related factors. Our first dataset was found on Kaggle and contains survey data on high school students in a math course in Portugal. This data was collected by the University of California, Irvine. The outcome variable we were interested in for this data is labeled G3, representing the students’ final grades for the school term, and is a numeric value ranging from 0 to 20. The predictor variable we were most interested in for this study was Dalc, which represents workday alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption).</p>
+<p>To answer the quesiton of how much college student should drink if they want to optimize their grades, we anlyzed three separate datasets on other research related to student term grades and their drinking factors, and include several other possibly related factors. Our first dataset was found on Kaggle and contains survey data on high school students in a math course in Portugal. This data was collected by the University of California, Irvine. The outcome variable we were interested in for this data is labeled G3, representing the students’ final grades for the school term, and is a numeric value ranging from 0 to 20. The predictor variable we were most interested in for this study was Dalc, which represents workday alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption). Another predictor variable we were interested in was absenses, which refers to a student’s total absences from school, recorded as a numeric value ranging from 0 to 93.</p>
 <p><explain michigan dataset></p>
 <p><explain sleep study dataset></p>
 <p>All three of our datasets were pretty clean to begin with in that they were not missing any entries and the individual observations did not seem inaccurate in any way. After reviewing the datasets, there were some factors that we decided we were not intestested in, which we filtered out. For the Michigan dataset, we decided to separate the data into two groups to see if the most important factors for predicting GPA were different between people who drink a little verusus people who drink a lot.</p>
@@ -158,6 +158,29 @@ uci_data &lt;- read.csv(&quot;./student-mat.csv&quot;, stringsAsFactors = FALSE)
 # feature selection
 
 # absences vs grades linear model</code></pre>
+<p><analysis></p>
+</div>
+<div id="michigan-dataset" class="section level3">
+<h3>Michigan Dataset</h3>
+<pre class="r"><code># load data
+
+# scatter plot with linear model
+
+# feature selection
+
+# absences vs grades linear model</code></pre>
+<p><analysis></p>
+</div>
+<div id="sleep-study-dataset" class="section level3">
+<h3>Sleep Study Dataset</h3>
+<pre class="r"><code># load data
+
+# scatter plot with linear model
+
+# feature selection
+
+# absences vs grades linear model</code></pre>
+<p><analysis></p>
 </div>
 </div>
 <div id="future-work" class="section level2">
