@@ -61,6 +61,8 @@ measure_distance <- function(mod_params, data) {
   sqrt(mean(diff ^ 2))
 }
 
+
+
 # Here's a line fit with the objective function that lm uses - squares of the residuals
 best <- optim(c(3.4, 0), measure_distance, data = sleep_data_small)
 
@@ -80,6 +82,11 @@ mad_fit$par
 
 sleep_data_small <- sleep_data_small %>%
   mutate(lm_mad = mad_fit$par[1] + mad_fit$par[2] * sleep_data$Drinks)
+
+ggplot(sleep_data_small , aes(Drinks)) +
+  geom_point(aes(y= GPA), size = 1) +
+  geom_line(aes(y= lm_mad), size = 1, colour = "grey30")
+
 
 sleep_data_small <- sleep_data_small %>% 
   mutate(

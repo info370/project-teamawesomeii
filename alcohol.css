@@ -1,0 +1,143 @@
+html,
+body,
+.slides,
+.slide {
+    height: 100%;
+    background-color: black;
+}
+
+body {
+    margin: 0px;
+    overflow: hidden;
+}
+
+.logo {
+    position: fixed;
+    left: 0px;
+    top: 0px;
+}
+
+.slides {
+    width: 500%;
+    position: relative;
+    left: 0;
+    
+    transition: left 1s;
+}
+
+.slide {
+    width: 20%;
+    background-size: cover;
+    background-position: center top;
+    float: left;
+    position: relative;
+    color: white;
+}
+
+.slide h1, .slide h2{
+    font-family: 'Roboto Slab', serif;
+    font-weight: 900;
+    font-size: 48px;
+    margin: 0px;
+    margin-left: 5%;
+}
+
+.slide h2 {
+    font-size: 24px;
+}
+
+img {
+    width: 90%;
+    height: 50%;
+    margin-top: 5%;
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+#Slide4 img{
+    width: 60%;
+    height: 30%;
+    margin-top: 0;
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+#Slide5 img {
+    width: 60%;
+    height: 40%;
+    margin-top: 0;
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+.arrow {
+    position: fixed;
+    bottom: 2%;
+    font-size: 36px;
+    cursor: pointer;
+    color: white;
+ 
+}
+
+.choice:hover {
+    opacity: 1;
+    background-color: gray;
+    color: white;
+}
+
+#controls {
+    width: 100%;
+    text-align: center;
+}
+
+.choice {
+    opacity: .5;
+    margin: 0px;
+}
+
+.fa-chevron-left {
+    left: 15px;
+}
+
+.fa-chevron-right {
+    right: 15px;
+}
+
+.dots {
+    height: 25px;
+    font-size: 24px;
+    position: fixed;
+    bottom: 15px;
+    left: 0px;
+    width: 100%;
+    text-align: center;
+    color: white;
+}
+
+.dot {
+    opacity: .5;
+}
+
+.dot.active {
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .slide h2 {
+        right: 15px;
+        font-size: 24px;
+    }
+
+    .arrow {
+        font-size: 40px;
+    }
+
+    .dots {
+        font-size: 16px;
+        height: 15px;
+    }
+
+    .logo {
+        width: 75px;
+    }
+}

@@ -1,0 +1,518 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+# load libraries
+if (!require(ggplot2)) { install.packages('ggplot2'); require(ggplot2) }
+if(!require(dplyr)){install.packages("dplyr"); require(dplyr)}
+if(!require(caret)){install.packages("caret"); require(caret)}
+if(!require(broom)){install.packages("broom"); require(broom)}
+```
+
+# Drinking Behaviors
+## Technical Description
+
+by Alyssa Holzer, Austin Hutchinson, Lee Polla, & Suraj Chandrasekhar
+
+## Introduction
+Alcohol is typically perceived as something that hinders performance. A common example of this is drinking while driving. At the same time, there is this notion of the Ballmer Peak where a few drinks in moderaiton can improve purformance during tasks like writing code. Similarly, there are also mixed opnions about whether or not drinking alcohol influences your sober behavior for better or for worse; like if someone wakes up with a hangover, or another peroson wakes up feeling energized after having fun or destressing. Based on our recommendations, students can make decisions about their drinking habits, such that they peform their best in school.
+
+### Decision Context
+Our research question asks how should students drink throughout the quarter if they want to optimize their GPA.The goal of this study is to help college students make informed decisions about what kinds of drinking behaviors they should adopt over the course of a school term with the ideal outcome being good grades. Some possible decisions college students can make include: abstain from alcohol, consume a moderate amount of alcohol by only drinking on weekends or setting a limit on how much or how often to drink over a period of time, or drink regularly everyday of the week. There are some assumptions that are usually made about alcohol and its effects. These include the assumptions that alcohol can be highly addictive, drinking kills brain cells, has mind altering effects, and is generally not conducive to good performance in school.
+
+For each choose on how much alcohol to consume as a student, there are two distinct outcomes. One is that you get good grades and the other is that you get poor grades. Most students would want to get the best grades they can possibly get.
+
+We are interested in how alcohol will influence students' grades' because we think that much of the other alcohol recommendations that students typically receive is only in terms of health and legality. We think that other students will be more receptive to our recommendations that are based on performance, because they are interested in doing well in school, and the students who don't care about heath or legality issues might be making decisions without being very informed at all. Universities and other educational institutions should also be interested in our results as a means to promote better student performance. Educational institutions will also likely be concenered over alcohol related issues on campuses, so we must be clear in that we are not advising students to participate in underage drinking or posession of alcohol when prohibited.
+
+## Method
+To answer the quesiton of how much college student should drink if they want to optimize their grades, we anlyzed three separate datasets on other research related to student term grades and their drinking factors, and include several other possibly related factors. The purpose of using multiple datasets in our anaysis is to try to triangulate between them and see if the same kinds of patterns and results are found across different contexts. The more consistent our results are across the three datasets, the more generalizable our findings might be.
+
+Our first dataset was found on Kaggle and contains data on high school students in a math course in Portugal. This data was collected by the University of California, Irvine's machine learning department using school reports and questionnaires. The outcome variable we were interested in for this data is labeled G3, representing the students' final grades for the school term, and is a numeric value ranging from 0 to 20. The predictor variable we were most interested in for this study was Dalc, which represents workday alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption). Another predictor variable we were interested in was absenses, which refers to a student's total absences from school, recorded as a numeric value ranging from 0 to 93.
+
+<explain michigan dataset>
+
+<explain sleep study dataset>
+
+All three of our datasets were pretty clean to begin with in that they were not missing any entries and the individual observations did not seem inaccurate in any way. After reviewing the datasets, there were some factors that we decided we were not intestested in, which we filtered out. For instance, the UCI dataset contains data on first and second period grades, which were strongly correlated with final grades, however we were more interested in the correlations between outside factors so we removed those two factors from our analysis. 
+
+For the Michigan dataset, we decided to separate the data into two groups to see if the most important factors for predicting GPA were different between people who drink a little verusus people who drink a lot.
+
+To analyze the relationship between alcohol and grades, we created linear models for each of the datasets and checked the correlation values between the outcome and predictor varables to check the accuracy of these models. We feel that this method was appropriate because we were primarily interested in whether or not there was a real correlation between the amount of alcohol a student consumes and their grades.
+
+## Data Analysis
+
+### Alcohol Consumption vs. Grades
+
+#### UCI Dataset
+
+```{r}
+# load uci data
+uci_data <- read.csv("./student-mat.csv", stringsAsFactors = FALSE)
+
+# fit linear model for G3 using Dalc
+dalc_linear_model <- lm(G3 ~ Dalc, data=uci_data)
+# coefficients from model
+dalc_parameters <- tidy(dalc_linear_model)$estimate
+
+# Violin plots with linear model
+uci_data$Dalc <- as.factor(uci_data$Dalc)
+p <- ggplot(uci_data, aes(x = Dalc, y = G3)) + 
+  geom_violin(trim = FALSE) +
+  geom_abline(slope=dalc_parameters[2], intercept=dalc_parameters[1], size = 1, color = "red") +
+  geom_boxplot(width=0.1)
+p
+```
+
+<analysis of violin plots>
+We chose to use a violin plot as opposed to a scatterplot to visualize this data because it is more helpful for showing the density of the distribution for each discrete value of Dalc. The boxplots were added mostly to show the mean final grade for each value of Dalc. More of the data is concentrated on the left side of the graph, which is unsurprising as this data comes from high school students. As you can see, the means are all fairly similar across students regardless of level of alcohol consumption, though the linear model created shows a slightly negative correlation between G3 and Dalc.
+
+```{r}
+cor(as.numeric(uci_data$Dalc), uci_data$G3)
+```
+
+Above is the Pearson correlation coefficent and is used here to measure the linear dependence between Dalc and G3. The resulting value is very small, which indicates there is very little correlation between the two variables. It is especially hard to say anything about the correlation between Dalc and G3 because far more students responded with a 3 or below for Dalc than those that reponded with 4 or above.
+
+``` {r}
+# feature selection
+
+# remove period 1 and 2 grades
+final_grade_features <- uci_data %>% dplyr::select(-failures, -G1, -G2)
+# k-folds cross-validation
+control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
+model <- train(G3 ~., data=final_grade_features, method = "knn", trControl = control)
+importance <- varImp(model)
+ggplot(importance)
+```
+
+To understand which variables are actually most important for predicting final creates we used feature selection, ranking features using K-Nearest Neighbors. As is shown in the chart above, the results show that absences are the most important feature for predicting G3. Dalc is ranked tenth, which strengthens our previous conclusion that there is only a week correlation between Dalc and G3. A different feature, Walc, represents weekend alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption). We chose not to investigate the relationship between weekend alcohol consumption and final grades because it is ranked twenty-first in the chart above, which is even lower than the ranking for Dalc, meaning there probably wouldn't be a very strong correlation.
+
+***
+
+#### Michigan Dataset
+
+```{r}
+# load data
+mich_data <- read.csv("./gpa1.csv")
+mich_data <- mich_data %>% dplyr::select(-X)
+#split into two groups
+low_drink <- mich_data %>% filter(alcohol < 3)
+high_drink <- mich_data %>% filter(alcohol >= 3)
+
+# scatter plot with linear model
+all_plot <- ggplot(mich_data, aes(x = alcohol, y = colGPA))  +
+  geom_point()
+all_plot
+```
+
+
+```{r}
+low_plot <- ggplot(low_drink, aes(x = alcohol, y = colGPA))  +
+  geom_point()
+low_plot
+high_plot <- ggplot(high_drink, aes(x = alcohol, y = colGPA))  +
+  geom_point()
+high_plot
+```
+
+
+```{r}
+# feature selection
+# all data
+control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
+colGPA_features <- mich_data %>% dplyr::select(-hsGPA)
+
+model1 <- train(colGPA ~., data=colGPA_features, method = "knn", trControl = control)
+
+importance1 <- varImp(model1)
+
+ggplot(importance1)
+```
+
+
+```{r}
+# low
+control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
+colGPA_features_low <- low_drink %>% dplyr::select(-hsGPA)
+
+model_low <- train(colGPA ~., data=colGPA_features_low, method = "knn", trControl = control)
+
+importance_low <- varImp(model_low)
+
+ggplot(importance_low)
+```
+
+
+```{r}
+# high
+control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
+colGPA_features_high <- high_drink %>% dplyr::select(-hsGPA)
+
+model_high <- train(colGPA ~., data=colGPA_features_high, method = "knn", trControl = control)
+
+importance_high <- varImp(model_high)
+ggplot(importance_high)
+```
+
+```{r}
+# fit linear model for colGPA using alcohol
+alcohol_linear_model <- lm(colGPA ~ alcohol, data=mich_data)
+# coefficients from model
+alcohol_parameters <- tidy(alcohol_linear_model)$estimate
+# plot data with linear model
+p <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=colGPA)) 
+p + geom_abline(slope=alcohol_parameters[2], intercept=alcohol_parameters[1], size = 1, color = "red")
+
+#correlation
+cor(mich_data$alcohol,mich_data$colGPA)
+```
+
+
+```{r}
+# Residuals
+mich_data$predAlc <- alcohol_parameters[2] * mich_data$alcohol + alcohol_parameters[1]
+mich_data$residGPA <- mich_data$colGPA - mich_data$predAlc
+p3 <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=residGPA))
+p3+geom_abline(slope=0, intercept = 0)
+```
+
+***
+
+#### Sleep Study Dataset
+
+```{r}
+# load data
+sleep_data <- read.csv("./Sleep Drinking - Sheet1.csv")
+sleep_data <- sleep_data %>% dplyr::select(-LarkOwl, -DepressionStatus, -AnxietyStatus, -Stress)
+
+# scatter plot
+p <- ggplot(sleep_data, aes(x = Drinks, y = GPA))  +
+  geom_point()
+p
+```
+
+
+```{r}
+# feature selection
+control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
+model <- train(GPA ~., data=sleep_data, method = "knn", trControl = control)
+importance <- varImp(model)
+ggplot(importance)
+```
+
+
+```{r}
+# drinks linear model
+drinks_linear_model <- lm (GPA ~ Drinks, data = sleep_data)
+drinks_parameters <- tidy(drinks_linear_model)$estimate
+drinks_parameters
+```
+
+
+```{r}
+sleep_data_small <- sleep_data %>%
+  dplyr::select(Drinks, GPA) %>%
+  mutate(drinks_lm_prediction = drinks_parameters[1] + drinks_parameters[2] * sleep_data$Drinks)
+
+ggplot(sleep_data_small , aes(Drinks)) +
+  geom_point(aes(y= GPA), size = 1) +
+  geom_line(aes(y= drinks_lm_prediction), size = 1, colour = "red")
+```
+
+
+```{r}
+drinks_lm_function <- function(a, data) {
+  a[1] + data$Drinks * a[2]
+}
+
+drinks_measure_distance <- function(mod_params, data) {
+  diff <- data$GPA - drinks_lm_function(mod_params, data)
+  sqrt(mean(diff ^ 2))
+}
+
+# line fit with squares of the residuals function
+drinks_best <- optim(c(3.4, 0), drinks_measure_distance, data = sleep_data_small)
+
+# values for the coefficients
+drinks_best$par
+# from lm() function
+drinks_parameters
+```
+
+
+```{r}
+drinks_measure_distance_mad <- function(mod_params, data) {
+  diff <- data$GPA - drinks_lm_function(mod_params, data)
+  mean(abs(diff))
+}
+
+# use mean absolute function to get distance
+drinks_mad_fit <- optim(c(3.4, 0), drinks_measure_distance_mad, data = sleep_data_small)
+drinks_mad_fit$par
+```
+
+
+```{r}
+sleep_data_small <- sleep_data_small %>%
+  mutate(lm_mad = drinks_mad_fit$par[1] + drinks_mad_fit$par[2] * sleep_data$Drinks)
+
+ggplot(sleep_data_small , aes(Drinks)) +
+  geom_point(aes(y= GPA), size = 1) +
+  geom_line(aes(y= lm_mad), size = 1, colour = "red")
+```
+```{r}
+cor(sleep_data$Drinks, sleep_data$GPA)
+```
+
+```{r}
+sleep_data_small <- sleep_data_small %>% 
+  mutate(
+    residuals_mad = GPA - lm_mad,
+    residuals = GPA - drinks_lm_prediction
+  )
+
+# plot the residuals to compare them
+ggplot(sleep_data_small, aes(Drinks)) +
+  geom_point(aes(y=residuals), size = 1) + 
+  geom_point(aes(y=residuals_mad), size = 1, color = "red") +
+  geom_abline(intercept=0, slope = 0)
+```
+
+***
+
+#### Summary
+
+Our attempt to triangulate our results using three different datesets proved inconclusive. Alcohol consumption was highly correlated with final grades for the sleep study dataset only. Based on these results, we cannot inform a decision on how should students drink throughout the quarter if they want to optimize their GPA. However, all three datasets showed number of absences as being one of the most important features for predicting final grades, so we decided to investigate this relationship further for each of the three datasets.
+
+***
+
+### Number of Classes Missed vs. Grades
+
+#### UCI Dataset
+
+```{r}
+# fit a linear model for G3 using absences
+absences_linear_model <- lm(G3 ~ absences, data=uci_data)
+# get coefficients from model
+absences_parameters = tidy(absences_linear_model)$estimate
+# calculate predictions from model
+absences_model_data <- uci_data %>%
+  mutate(
+    absences_lm_prediction = absences_parameters[1] + absences_parameters[2] * uci_data$absences
+  )
+# plot data and predictions
+ggplot(absences_model_data , aes(absences)) +
+  geom_point(aes(y = G3)) +
+  geom_line(aes(y = absences_lm_prediction), size = 1, color = "red")
+```
+
+The absences versus G3 data is quite concentrated on the left side of the graph, but has some outliers to the right because a few students have an unusually high number of absences. The linear model included over the points indicates there is a positive relationship between a student's number of absences and their final grades, which does not make much sense. As students, we know that if you go to class it is usually easier to do well.
+
+```{r}
+cor(as.numeric(uci_data$absences), uci_data$G3)
+```
+
+The correlation coefficient is quite small which indicates there is not a significant correlation between absences and final grades for this data.
+
+Below we use two different objective functions to fit a linear model and compare their residuals.
+
+```{r}
+# get predicted value by model
+absences_lm_function <- function(a, data) {
+  a[1] + data$absences * a[2]
+}
+
+# measure distance between actual and predicted using root-mean-squared deviation
+absences_measure_distance <- function(mod_params, data) {
+  diff <- data$G3 - absences_lm_function(mod_params, data)
+  sqrt(mean(diff ^ 2))
+}
+# minimize distance between to find best model using root-mean-squared deviation
+absences_best <- optim(c(0, 0), absences_measure_distance, data = absences_model_data)
+# values for the coefficients
+absences_best$par
+# coefficients of lm()
+absences_parameters
+```
+
+The coefficients from using the squares of the root-mean-squared method are very similar to the coefficients from the lm() model.
+
+```{r}
+# measure distance between actual and predicted using mean absolute deviation
+absences_measure_mad <- function(mod_params, data) {
+  diff <- data$G3 - absences_lm_function(mod_params, data)
+  mean(abs(diff))
+}
+# minimize distances to find best model using mad
+absences_mad_fit <- optim(c(0, 0), absences_measure_mad, data = absences_model_data)
+# values for mad coefficients
+absences_mad_fit$par
+```
+
+The coefficients from the mean absolute deviation method are noticably different from the two sets of coefficients above. The most noticable difference is that the slope calculated using mean absolute deviation is negative, which fits the idea that there should be a negative correlation between number of absences and final grades.
+
+```{r}
+# add mad predictions to data
+absences_model_data <- absences_model_data %>%
+  mutate(lm_mad_prediction = absences_mad_fit$par[1] + absences_mad_fit$par[2] * uci_data$absences)
+
+# plot mad model
+ggplot(absences_model_data , aes(absences)) +
+  geom_point(aes(y = G3)) +
+  geom_line(aes(y = lm_mad_prediction), size = 1, color = "red")
+```
+
+If we plot this linear model over the data, it seems to fit the distribution of points better than the linear model above. This is because the mean absolute deviation is less sensitive to the outliers in this set of data. However, to learn which model is actually a better fit, we can compare their residuals.
+
+```{r}
+# add both sets of residuals to data
+absences_model_data <- absences_model_data %>% 
+  mutate(
+        residuals_lm = G3 - absences_lm_prediction,
+        residuals_mad = G3 - lm_mad_prediction
+  )
+
+# plot residuals
+ggplot(absences_model_data, aes(absences)) +
+  geom_point(aes(y=residuals_lm), size = 1) + 
+  geom_point(aes(y=residuals_mad), color = "red", size = 1) +
+  geom_abline(intercept=0, slope = 0)
+```
+
+The residuals for the model created using lm() are shown in black and the residuals for the model created using mean absolute deviation are shown in red. The red residual points appear to be slightly closer to zero for many of the points, especially on the upper-left part of the graph where the points are more highly concentrated. There is no clear pattern in the residuals in either case, which indicates a linear model is in fact appropriate for this data.
+
+***
+
+#### Michigan Dataset
+
+```{r}
+# skipped vs colGPA plot
+skip_plot <- ggplot(mich_data, aes(x = skipped, y = colGPA, size=alcohol))  +
+  geom_point()
+skip_plot
+```
+
+
+```{r}
+# skipped vs colGPA linear model
+linearMod_skip <- lm(colGPA ~ skipped, data=mich_data)
+# coefficients from model
+skipped_parameters <- tidy(linearMod_skip)$estimate
+# scatterplot with linear model
+skip_plot + geom_abline(slope=skipped_parameters[2], intercept = skipped_parameters[1], size = 1, color = "red")
+
+# correlation
+cor(mich_data$skipped,mich_data$colGPA)
+```
+
+***
+
+#### Sleep Study Dataset
+
+```{r}
+#Class_skipped analysis
+
+missed_linear_model <- lm(GPA ~ ClassesMissed, data = sleep_data)
+
+missed_parameters <- tidy(missed_linear_model)$estimate
+
+sleep_data_small <- sleep_data %>%
+  dplyr::select(ClassesMissed, GPA) %>%
+  mutate(missed_lm_prediction = missed_parameters[1] + missed_parameters[2] * sleep_data$ClassesMissed)
+
+ggplot(sleep_data_small , aes(ClassesMissed)) +
+  geom_point(aes(y= GPA)) +
+  geom_line(aes(y= missed_lm_prediction), size = 1, colour = "red")
+```
+
+
+```{r}
+missed_lm_function <- function(a, data) {
+  a[1] + data$ClassesMissed * a[2]
+}
+
+missed_measure_distance <- function(mod_params, data) {
+  diff <- data$GPA - missed_lm_function(mod_params, data)
+  sqrt(mean(diff ^ 2))
+}
+
+# line fit with squares of the residuals
+missed_best <- optim(c(3.4, 0), missed_measure_distance, data = sleep_data_small)
+
+# values for the coefficients
+missed_best$par
+# from lm() function
+missed_parameters
+```
+
+
+```{r}
+missed_measure_distance_mad <- function(mod_params, data) {
+  diff <- data$GPA - missed_lm_function(mod_params, data)
+  mean(abs(diff))
+}
+
+# make use of a different distance function here (such as mean absolute)
+missed_mad_fit <- optim(c(3.4, 0), missed_measure_distance_mad, data = sleep_data_small)
+missed_mad_fit$par
+```
+
+
+```{r}
+sleep_data_small <- sleep_data_small %>%
+  mutate(lm_mad = missed_mad_fit$par[1] + missed_mad_fit$par[2] * sleep_data$ClassesMissed)
+
+sleep_data_small <- sleep_data_small %>% 
+  mutate(
+    residuals_mad = GPA - lm_mad,
+    residuals = GPA - missed_lm_prediction
+  )
+
+# plot the residuals to compare them
+ggplot(sleep_data_small, aes(ClassesMissed)) +
+  geom_point(aes(y=residuals), size = 1) + 
+  geom_point(aes(y=residuals_mad), color = "red", size = 1) +
+  geom_abline(intercept=0, slope = 0)
+```
+
+
+```{r}
+cor(sleep_data$ClassesMissed, sleep_data$GPA)
+cor(sleep_data$ClassesMissed, sleep_data$Drinks)
+```
+
+***
+
+#### Summary
+
+<summary of absences vs gpa for all datasets>
+
+***
+
+## Results
+
+<how the above results inform our decision context>
+
+### Limitations
+
+When searching for data to use for our study we learned that there is limited data available on the subject matter specific to drinking and its direct relation to grades for college students. One major limitation that we faced was that it was hard to connect all three datasets together because they all came from different contexts and measured different features so their important actors were all different.
+
+The UCI dataset was particularly unhelpful because it represents the drinking behaviors of high school students from a different country, which we think is quite distinct from college students in the United States.
+
+For the Michigan dataset, we were only given the amount of days that they consumed alcohol, and an issue with that is that we cannot quantify how much alcohol that the students drank. If a student drank 7 days, it could have meant that he could have only had a single beer every night, which would cause different effects than if someone consumed 5 beers each night for 4 nights, even though the data would lead us to believe that the person who reported 7 days would drink more.
+
+For the sleep dataset, we would have the a similar but opposite issue compared to the Michigan dataset as they report drinks consumed per week but not days they drank. If we look at two participants who consumed 15 drinks in a week, the affects would be different for a participant who consumed around 2 drinks a day for 7 days than a participant who consumed 5 drinks a day for 3 days.
+
+Another issue that we were not able to look into from the dataset is a hangover. The drinking data we look into sees the amount of drinks a person consumed or how often a person consumes alcohol, but we do not get to look into reprucussions that drinking can cause, such as hangovers. Hangovers can cause headaches, drowsiness, concentration issues, and other symptoms from periods of time that could last from 4 hours to an entire day. These symptoms would also detract student learning as they would not be able to concentrate on the material but rather focus on the discomfort that they are experiencing, and this phenomenon would provide more detrimental to a student's GPA than the act of drinking alcohol. 
+
+
+As we did not collect the data in these three datasets ourselves, it was impossible for us to know exactly the types of drinks people consumed, exactly how frequently they drink throughout a school term, and also how drunk they actually get. Because the data we used had limited information, we had to assume that the number of drinks or days of drinking is representative of drinking behavior without knowing exactly how much someone drank at a given time. 
+
+
+## Future Work
+
+A more controlled experiment would certainly give us more insight on the relationship between alcohol and students' grades. In future studies, it would be interesting to track more distinct and exhaustive factors, such as the frequency, specific days of week, and number of standard drinks consumed by a much more consistent population of college students. An experiment of this design would help gain a deeper understanding about the relationships between each factor and grades.
+
+Other important factors that we want to explore are the quesitons about what type of alcohol is consumed and whether drinking alcohol will affect performance consistently across different people. The type of drink is important becuase there are many other food chemicals that will have significant effectos on brain activity that should be accounted for. There may also be some relevant and underlying social behavior associated with drinking for different people, so it would also be interesting to pay more attention to the number of drinks a person has, what type of drinks they are having, how often they drink, and their body weight for calculating BAC (standard measure of drunkeness across different people) when collecting data. Future studies should track exactly how much participants drink because different amounts of alcohol affect people differently and some people have different defintitions of what they would consider "light" or "heavy" drinking.
