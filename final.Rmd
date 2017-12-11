@@ -107,6 +107,7 @@ all_plot <- ggplot(mich_data, aes(x = alcohol, y = colGPA))  +
 all_plot
 ```
 
+In the graph above, we plotted a scatter plot looking at the college GPA and compare it to the number of days the partipant drinks. Based on the graph, we did not find a correlation of any sort as there were people that didn't drink with high GPA's, people who did not drink and had relatively low GPAs, people who drank more frequently with relatively high GPA's, and people who drank more frequently with relatively low GPA's. We decided to see if there were any correlations if we clustered the data into two seperate groups, one being people who drank alcohol 3 or fewer days a week, and people who drank alchol for 4 or more days a week.
 
 ```{r}
 low_plot <- ggplot(low_drink, aes(x = alcohol, y = colGPA))  +
@@ -117,6 +118,7 @@ high_plot <- ggplot(high_drink, aes(x = alcohol, y = colGPA))  +
 high_plot
 ```
 
+The two plots above show the same scatter plot for the two clusters I mentioned above. There were more participants that drank less than 3 days a week compared to the heavier drinkers, but the patterns were similar for both. The data was fairly discrete as it was based on days they consume alcohol, so it is an integer value rather than a decimal day as you cannot drink for a half a day, it's a binary yes or no if you drink during a certain day. Both graphs show a spread of values for each integer value, as there were people for each day with fairly low GPA's and people with fairly high GPA's, and people with average GPA's so we could not make any correlation between grades and alcohol.
 
 ```{r}
 # feature selection
@@ -131,6 +133,7 @@ importance1 <- varImp(model1)
 ggplot(importance1)
 ```
 
+To understand which variables are actually most important for predicting final creates we used feature selection, ranking features using K-Nearest Neighbors. As is shown in the chart above, the results show that absences are the most important feature for predicting GPA. Alchol was actually the fifth least important factor when it comes to college GPA, as it is almost negligible when it comes to college GPA, which we also see in our scatter plot above.
 
 ```{r}
 # low
@@ -144,6 +147,7 @@ importance_low <- varImp(model_low)
 ggplot(importance_low)
 ```
 
+We did a similar important factor analysis for the people who do not drink or drink moderately. We removed high school GPA from our factor analysis because it was significantly more important than any other factor, and it makes logical sense because people who are good students in high school are most likely going to be good students in college. Skipped classes was once again the most important factor to college GPA, and alcohol was not as important as a factor, as it is not one of the top 10 most important factors. One thing we found interesting is that most important factors deal with more academic issues, such as class standing, their ACT scores, if they are an engineering student, or if they went to a Michigan high school
 
 ```{r}
 # high
@@ -155,6 +159,9 @@ model_high <- train(colGPA ~., data=colGPA_features_high, method = "knn", trCont
 importance_high <- varImp(model_high)
 ggplot(importance_high)
 ```
+
+We also did a similar important factor analysis for the people who drink more frequently. We once again removed high school GPA from our factor analysis because it was significantly more important than any other factor, and it makes logical sense because people who are good students in high school are most likely going to be good students in college. ACT grades were the most important factor to college GPA, and alcohol was more important as a factor, as it was one of the top 10 most important factors. One thing we found interesting is that most important factors deal with more social issues, such as having a boyfriend or girlfriend, being in the greek system, having siblings, and volunteering.
+
 
 ```{r}
 # fit linear model for colGPA using alcohol
@@ -169,6 +176,7 @@ p + geom_abline(slope=alcohol_parameters[2], intercept=alcohol_parameters[1], si
 cor(mich_data$alcohol,mich_data$colGPA)
 ```
 
+Above, we performed a linear regression and found a line that was almost horizontal, as the slope was very close to 0. We also looked into the correlation between alcohol and college GPA, and found the correlation value to be 0.017, which is a very weak positive relationship and signifying that there is almost no relationship between alcohol and college GPA.
 
 ```{r}
 # Residuals
@@ -177,6 +185,8 @@ mich_data$residGPA <- mich_data$colGPA - mich_data$predAlc
 p3 <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=residGPA))
 p3+geom_abline(slope=0, intercept = 0)
 ```
+
+We also performed a residual analysis on our regression to make sure that we chose the right model instead of a quadratic regression. Based on our residual graph above, the linear regression was appropriate as they values were fairly close to 0 and was pretty random in being over or under the line.
 
 ***
 
@@ -394,6 +404,7 @@ skip_plot <- ggplot(mich_data, aes(x = skipped, y = colGPA, size=alcohol))  +
 skip_plot
 ```
 
+The data points are more concentrated to the left of the graph, meaning that most of our participants did not skip class frequently. We also used plot point size to signify the amount the student drank, and the points are fairly scattered, meaning that people who drink alcohol more frequently do not necessarily mean that they skip class more often.
 
 ```{r}
 # skipped vs colGPA linear model
@@ -406,6 +417,8 @@ skip_plot + geom_abline(slope=skipped_parameters[2], intercept = skipped_paramet
 # correlation
 cor(mich_data$skipped,mich_data$colGPA)
 ```
+
+We created a linear regression plot showing the relationship between skipped classes and college GPA, and the graph had a negetive regression slope, which signified that people who skipped more would have a worse GPA. The correlation value of -0.26 means that there is a significant negative relationship between the two factors, and this correlation is much stronger compared to the correlation between alcohol and college GPA.
 
 ***
 
