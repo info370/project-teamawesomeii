@@ -61,7 +61,7 @@ dalc_parameters <- tidy(dalc_linear_model)$estimate
 uci_data$Dalc <- as.factor(uci_data$Dalc)
 p <- ggplot(uci_data, aes(x = Dalc, y = G3)) + 
   geom_violin(trim = FALSE) +
-  geom_abline(slope=dalc_parameters[2], intercept=dalc_parameters[1]) +
+  geom_abline(slope=dalc_parameters[2], intercept=dalc_parameters[1], size = 1, color = "red") +
   geom_boxplot(width=0.1)
 p
 ```
@@ -156,49 +156,26 @@ importance_high <- varImp(model_high)
 ggplot(importance_high)
 ```
 
-
 ```{r}
-# absences vs grades linear model
-skip_plot <- ggplot(mich_data, aes(x = skipped, y = colGPA, size=alcohol))  +
-  geom_point()
-skip_plot
-```
-
-
-```{r}
-linearMod_skip <- lm(colGPA ~ skipped, data=mich_data)
-linearMod_skip
-summary(linearMod_skip)
-skip_plot + geom_abline(slope=-0.08952, intercept = 3.15308)
-```
-
-
-```{r}
+# fit linear model for colGPA using alcohol
+alcohol_linear_model <- lm(colGPA ~ alcohol, data=mich_data)
+# coefficients from model
+alcohol_parameters <- tidy(alcohol_linear_model)$estimate
+# plot data with linear model
 p <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=colGPA)) 
-p + geom_abline(slope=0.004655, intercept=3.047889)
-```
+p + geom_abline(slope=alcohol_parameters[2], intercept=alcohol_parameters[1], size = 1, color = "red")
 
-
-```{r}
-#basic linear model
-
-linearMod <- lm(colGPA ~ alcohol, data=mich_data)
-linearMod
-```
-
-
-```{r}
 #correlation
-alc <- mich_data$alcohol
-gpa <- mich_data$colGPA
-skip <- mich_data$skipped
-cor(skip,gpa)
+cor(mich_data$alcohol,mich_data$colGPA)
+```
 
+
+```{r}
 # Residuals
-mich_data$predAlc <- .004655*mich_data$alcohol + 3.047889
+mich_data$predAlc <- alcohol_parameters[2] * mich_data$alcohol + alcohol_parameters[1]
 mich_data$residGPA <- mich_data$colGPA - mich_data$predAlc
 p3 <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=residGPA))
-p3+geom_abline(slope=0, intercept = 0, color="red")
+p3+geom_abline(slope=0, intercept = 0)
 ```
 
 ***
@@ -210,188 +187,97 @@ p3+geom_abline(slope=0, intercept = 0, color="red")
 sleep_data <- read.csv("./Sleep Drinking - Sheet1.csv")
 sleep_data <- sleep_data %>% dplyr::select(-LarkOwl, -DepressionStatus, -AnxietyStatus, -Stress)
 
-# scatter plot with linear model
+# scatter plot
 p <- ggplot(sleep_data, aes(x = Drinks, y = GPA))  +
   geom_point()
+p
+```
 
+
+```{r}
 # feature selection
 control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
-
 model <- train(GPA ~., data=sleep_data, method = "knn", trControl = control)
-
 importance <- varImp(model)
-
 ggplot(importance)
 ```
 
 
 ```{r}
 # drinks linear model
-linear_model <- lm (GPA ~ Drinks, data = sleep_data)
-linear_model
-
-parameters <- tidy(linear_model)$estimate
-parameters
+drinks_linear_model <- lm (GPA ~ Drinks, data = sleep_data)
+drinks_parameters <- tidy(drinks_linear_model)$estimate
+drinks_parameters
 ```
 
 
 ```{r}
 sleep_data_small <- sleep_data %>%
-  #mutate(GPA_negation = 4.0 - sleep_data$GPA) %>%
-  dplyr::select(Drinks, GPA, ClassesMissed) %>%
-  mutate(linear_model_prediction = parameters[1] + parameters[2] * sleep_data$Drinks)
-
-#head(sleep_data)
+  dplyr::select(Drinks, GPA) %>%
+  mutate(drinks_lm_prediction = drinks_parameters[1] + drinks_parameters[2] * sleep_data$Drinks)
 
 ggplot(sleep_data_small , aes(Drinks)) +
   geom_point(aes(y= GPA), size = 1) +
-  geom_line(aes(y= linear_model_prediction), size = 1, colour = "grey30")
+  geom_line(aes(y= drinks_lm_prediction), size = 1, colour = "red")
 ```
 
 
 ```{r}
-model_linear_function <- function(a, data) {
+drinks_lm_function <- function(a, data) {
   a[1] + data$Drinks * a[2]
 }
 
-model_function = model_linear_function
-measure_distance <- function(mod_params, data) {
-  diff <- data$GPA - model_function(mod_params, data)
+drinks_measure_distance <- function(mod_params, data) {
+  diff <- data$GPA - drinks_lm_function(mod_params, data)
   sqrt(mean(diff ^ 2))
 }
 
-
-
-# Here's a line fit with the objective function that lm uses - squares of the residuals
-best <- optim(c(3.4, 0), measure_distance, data = sleep_data_small)
-
+# line fit with squares of the residuals function
+drinks_best <- optim(c(3.4, 0), drinks_measure_distance, data = sleep_data_small)
 
 # values for the coefficients
-parameters
-best$par
+drinks_best$par
+# from lm() function
+drinks_parameters
 ```
 
 
 ```{r}
-measure_distance_mad <- function(mod_params, data) {
-  diff <- data$GPA - model_function(mod_params, data)
+drinks_measure_distance_mad <- function(mod_params, data) {
+  diff <- data$GPA - drinks_lm_function(mod_params, data)
   mean(abs(diff))
 }
 
-# make use of a different distance function here (such as mean absolute)
-mad_fit <- optim(c(3.4, 0), measure_distance_mad, data = sleep_data_small)
-mad_fit$par
+# use mean absolute function to get distance
+drinks_mad_fit <- optim(c(3.4, 0), drinks_measure_distance_mad, data = sleep_data_small)
+drinks_mad_fit$par
 ```
 
 
 ```{r}
 sleep_data_small <- sleep_data_small %>%
-  mutate(lm_mad = mad_fit$par[1] + mad_fit$par[2] * sleep_data$Drinks)
+  mutate(lm_mad = drinks_mad_fit$par[1] + drinks_mad_fit$par[2] * sleep_data$Drinks)
 
 ggplot(sleep_data_small , aes(Drinks)) +
   geom_point(aes(y= GPA), size = 1) +
-  geom_line(aes(y= lm_mad), size = 1, colour = "grey30")
+  geom_line(aes(y= lm_mad), size = 1, colour = "red")
 ```
-
-
 ```{r}
-sleep_data_small <- sleep_data_small %>% 
-  mutate(
-    residuals_mad = GPA - lm_mad,
-    residuals = GPA - linear_model_prediction
-  )
-
-
-# plot the residuals to compare them
-ggplot(sleep_data_small, aes(ClassesMissed)) +
-  geom_point(aes(y=residuals)) + 
-  geom_point(aes(y=residuals_mad), color = "red") +
-  geom_abline(intercept=0, slope = 0)
-```
-
-
-```{r}
-summary(linear_model)
-cor(sleep_data$ClassesMissed, sleep_data$GPA)
 cor(sleep_data$Drinks, sleep_data$GPA)
-cor(sleep_data$ClassesMissed, sleep_data$Drinks)
 ```
 
-
 ```{r}
-#Class_skipped analysis
-
-linear_model <- lm (GPA ~ ClassesMissed, data = sleep_data)
-
-parameters <- tidy(linear_model)$estimate
-
-sleep_data_small <- sleep_data %>%
-  #mutate(GPA_negation = 4.0 - sleep_data$GPA) %>%
-  dplyr::select(ClassesMissed, GPA) %>%
-  mutate(linear_model_prediction = parameters[1] + parameters[2] * sleep_data$ClassesMissed)
-
-#head(sleep_data)
-
-ggplot(sleep_data_small , aes(ClassesMissed)) +
-  geom_point(aes(y= GPA), size = 1) +
-  geom_line(aes(y= linear_model_prediction), size = 1, colour = "grey30")
-```
-
-
-```{r}
-model_linear_function <- function(a, data) {
-  a[1] + data$ClassesMissed * a[2]
-}
-
-model_function = model_linear_function
-measure_distance <- function(mod_params, data) {
-  diff <- data$GPA - model_function(mod_params, data)
-  sqrt(mean(diff ^ 2))
-}
-
-# Here's a line fit with the objective function that lm uses - squares of the residuals
-best <- optim(c(3.4, 0), measure_distance, data = sleep_data_small)
-
-
-# values for the coefficients
-parameters
-best$par
-```
-
-
-```{r}
-measure_distance_mad <- function(mod_params, data) {
-  diff <- data$GPA - model_function(mod_params, data)
-  mean(abs(diff))
-}
-
-# make use of a different distance function here (such as mean absolute)
-mad_fit <- optim(c(3.4, 0), measure_distance_mad, data = sleep_data_small)
-mad_fit$par
-```
-
-
-```{r}
-sleep_data_small <- sleep_data_small %>%
-  mutate(lm_mad = mad_fit$par[1] + mad_fit$par[2] * sleep_data$ClassesMissed)
-
 sleep_data_small <- sleep_data_small %>% 
   mutate(
     residuals_mad = GPA - lm_mad,
-    residuals = GPA - linear_model_prediction
+    residuals = GPA - drinks_lm_prediction
   )
 
-
 # plot the residuals to compare them
-ggplot(sleep_data_small, aes(ClassesMissed)) +
-  geom_point(aes(y=residuals)) + 
-  geom_point(aes(y=residuals_mad), color = "red") +
+ggplot(sleep_data_small, aes(Drinks)) +
+  geom_point(aes(y=residuals), size = 1) + 
+  geom_point(aes(y=residuals_mad), size = 1, color = "red") +
   geom_abline(intercept=0, slope = 0)
-```
-
-
-```{r}
-summary(linear_model)
 ```
 
 ***
@@ -419,10 +305,10 @@ absences_model_data <- uci_data %>%
 # plot data and predictions
 ggplot(absences_model_data , aes(absences)) +
   geom_point(aes(y = G3)) +
-  geom_line(aes(y = absences_lm_prediction), color = "red")
+  geom_line(aes(y = absences_lm_prediction), size = 1, color = "red")
 ```
 
-The absences versus G3 data is quite concentrated on the left side of the graph, but has some outliers to the right because a few students have an unusually high number of absences. The linear model included over the points indicates there is a positive relationship between a student's number of absences and their final grades, which does not make much sense. As students, we know that if you go to class, it is usually easier to do well.
+The absences versus G3 data is quite concentrated on the left side of the graph, but has some outliers to the right because a few students have an unusually high number of absences. The linear model included over the points indicates there is a positive relationship between a student's number of absences and their final grades, which does not make much sense. As students, we know that if you go to class it is usually easier to do well.
 
 ```{r}
 cor(as.numeric(uci_data$absences), uci_data$G3)
@@ -475,7 +361,7 @@ absences_model_data <- absences_model_data %>%
 # plot mad model
 ggplot(absences_model_data , aes(absences)) +
   geom_point(aes(y = G3)) +
-  geom_line(aes(y = lm_mad_prediction), color = "red")
+  geom_line(aes(y = lm_mad_prediction), size = 1, color = "red")
 ```
 
 If we plot this linear model over the data, it seems to fit the distribution of points better than the linear model above. This is because the mean absolute deviation is less sensitive to the outliers in this set of data. However, to learn which model is actually a better fit, we can compare their residuals.
@@ -501,13 +387,107 @@ The residuals for the model created using lm() are shown in black and the residu
 
 #### Michigan Dataset
 
+```{r}
+# skipped vs colGPA plot
+skip_plot <- ggplot(mich_data, aes(x = skipped, y = colGPA, size=alcohol))  +
+  geom_point()
+skip_plot
+```
+
+
+```{r}
+# skipped vs colGPA linear model
+linearMod_skip <- lm(colGPA ~ skipped, data=mich_data)
+# coefficients from model
+skipped_parameters <- tidy(linearMod_skip)$estimate
+# scatterplot with linear model
+skip_plot + geom_abline(slope=skipped_parameters[2], intercept = skipped_parameters[1], size = 1, color = "red")
+
+# correlation
+cor(mich_data$skipped,mich_data$colGPA)
+```
+
 ***
 
 #### Sleep Study Dataset
 
+```{r}
+#Class_skipped analysis
+
+missed_linear_model <- lm(GPA ~ ClassesMissed, data = sleep_data)
+
+missed_parameters <- tidy(missed_linear_model)$estimate
+
+sleep_data_small <- sleep_data %>%
+  dplyr::select(ClassesMissed, GPA) %>%
+  mutate(missed_lm_prediction = missed_parameters[1] + missed_parameters[2] * sleep_data$ClassesMissed)
+
+ggplot(sleep_data_small , aes(ClassesMissed)) +
+  geom_point(aes(y= GPA)) +
+  geom_line(aes(y= missed_lm_prediction), size = 1, colour = "red")
+```
+
+
+```{r}
+missed_lm_function <- function(a, data) {
+  a[1] + data$ClassesMissed * a[2]
+}
+
+missed_measure_distance <- function(mod_params, data) {
+  diff <- data$GPA - missed_lm_function(mod_params, data)
+  sqrt(mean(diff ^ 2))
+}
+
+# line fit with squares of the residuals
+missed_best <- optim(c(3.4, 0), missed_measure_distance, data = sleep_data_small)
+
+# values for the coefficients
+missed_best$par
+# from lm() function
+missed_parameters
+```
+
+
+```{r}
+missed_measure_distance_mad <- function(mod_params, data) {
+  diff <- data$GPA - missed_lm_function(mod_params, data)
+  mean(abs(diff))
+}
+
+# make use of a different distance function here (such as mean absolute)
+missed_mad_fit <- optim(c(3.4, 0), missed_measure_distance_mad, data = sleep_data_small)
+missed_mad_fit$par
+```
+
+
+```{r}
+sleep_data_small <- sleep_data_small %>%
+  mutate(lm_mad = missed_mad_fit$par[1] + missed_mad_fit$par[2] * sleep_data$ClassesMissed)
+
+sleep_data_small <- sleep_data_small %>% 
+  mutate(
+    residuals_mad = GPA - lm_mad,
+    residuals = GPA - missed_lm_prediction
+  )
+
+# plot the residuals to compare them
+ggplot(sleep_data_small, aes(ClassesMissed)) +
+  geom_point(aes(y=residuals), size = 1) + 
+  geom_point(aes(y=residuals_mad), color = "red", size = 1) +
+  geom_abline(intercept=0, slope = 0)
+```
+
+
+```{r}
+cor(sleep_data$ClassesMissed, sleep_data$GPA)
+cor(sleep_data$ClassesMissed, sleep_data$Drinks)
+```
+
 ***
 
 #### Summary
+
+<summary of absences vs gpa for all datasets>
 
 ***
 
