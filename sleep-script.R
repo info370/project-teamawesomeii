@@ -25,7 +25,7 @@ sleep_data <- sleep_data %>% dplyr::select(-LarkOwl, -DepressionStatus, -Anxiety
 
 p <- ggplot(sleep_data, aes(x = Drinks, y = GPA))  +
   geom_point()
-
+p
 
 # Feature selection
 control <- trainControl(method="repeatedcv", number = 10, repeats = 3)
