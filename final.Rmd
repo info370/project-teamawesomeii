@@ -417,7 +417,7 @@ ggplot(sleep_data_small , aes(ClassesMissed)) +
   geom_point(aes(y= GPA)) +
   geom_line(aes(y= missed_lm_prediction), size = 1, colour = "red")
 ```
-
+This scatterplot shows a linear model over the number of classes missed versus student GPAs from the sleep study dataset. Similar to the previous two datasets, the points are more highly concentrated to the left side of the graph meaning most participants did not skip class very frequently. While there are a wide range of GPAs despite number of classes missed, the linear model indiates that there is a slightly negative correlation between the number of classes missed and GPA.
 
 ```{r}
 missed_lm_function <- function(a, data) {
@@ -438,6 +438,7 @@ missed_best$par
 missed_parameters
 ```
 
+We tried using a different method to fit a linear model to this data and found that the coefficients from  using the root-mean-squared method are very similar to the coefficients from the lm() model.
 
 ```{r}
 missed_measure_distance_mad <- function(mod_params, data) {
@@ -450,6 +451,7 @@ missed_mad_fit <- optim(c(3.4, 0), missed_measure_distance_mad, data = sleep_dat
 missed_mad_fit$par
 ```
 
+Using the mean absolute deviation method to fit a linear model to this data also produces slightly different results, but is similar enough for our purposes.
 
 ```{r}
 sleep_data_small <- sleep_data_small %>%
@@ -468,6 +470,7 @@ ggplot(sleep_data_small, aes(ClassesMissed)) +
   geom_abline(intercept=0, slope = 0)
 ```
 
+The residuals for the model created using lm() are shown in black and the residuals for the model created using mean absolute deviation are shown in red. The two sets of residuals are very similar, however the mean absolute deviation residuals are slightly closer to zero for values above the linear model and slightly further from zero for values below the linear model. For both sets of residuals there is no clear pattern in the points, which shows that a linear model was appropriate for modeling this data.
 
 ```{r}
 cor(sleep_data$ClassesMissed, sleep_data$GPA)
@@ -478,13 +481,13 @@ cor(sleep_data$ClassesMissed, sleep_data$Drinks)
 
 #### Summary
 
-<summary of absences vs gpa for all datasets>
+Across all three of our datasets, we determined that there is a negative correlation between the number of classes a student skips and their GPA. While we only saw a negative correlation between the number of absences and final grades for the UCI dataset when using the mean absolute deviation method, the other two datasets showed a clear negative correlation between the two variables. This makes sense because if you aren't going to class you usually have to work harder to catch up and learn the material that you missed and this can impact your grades.
 
 ***
 
 ## Results
 
-<how the above results inform our decision context>
+While our analysis on how alcohol consumption affects college students' grades was inconclusive across the three different datasets, we were able to triangulate our results on how the number of classes missed is correlated with final grades. In the end, our analysis showed that attending class is more relevant to final grades than drinking. Based on these results, our suggestion for college students who are deciding how they should drink throughout the quarter if they want to optimize their GPA is that they should drink on the condition that they go to class. If students are drinking so much that they are too hungover in the morning to go to class, it will probably have a negative impact on their grades. However, if students chose to drink responsibly such that they are still able to go to class, they will be more likely to get good grades. Ultimately, we acknowledge that students should make their own decisions regarding alcohol, but we encourage them to go to class if they want to optimize their GPA. 
 
 ### Limitations
 
