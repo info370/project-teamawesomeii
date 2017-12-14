@@ -32,6 +32,8 @@ To answer the quesiton of how much college student should drink if they want to 
 
 Our first dataset was found on Kaggle and contains data on high school students in a math course in Portugal. This data was collected by the University of California, Irvine's machine learning department using school reports and questionnaires. The outcome variable we were interested in for this data is labeled G3, representing the students' final grades for the school term, and is a numeric value ranging from 0 to 20. The predictor variable we were most interested in for this study was Dalc, which represents workday alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption). Another predictor variable we were interested in was absenses, which refers to a student's total absences from school, recorded as a numeric value ranging from 0 to 93.
 
+Our second dataset was found on StatCrunch and contains data about grades in Michigan State Unviersity, and looks at a variety of factors to see what affects GPA. The outcome variable was colGPA, which is the reported college GPA of students on a scale from 0.0 to 4.0. There was an alcohol attribute that was looked into by the study, as it is a factor that looks into how many days a week that a student drinks from 0 to 7, where is 0 is the student drinking 0 days a week, and 7 representing that the student drinks every day of the week. Another predictor variable we were interested in looking into was skipped, which refers to how often the student does not attend classes. It is measured by looking at how many lectures a student misses per week on average.
+
 <explain michigan dataset>
 
 <explain sleep study dataset>
