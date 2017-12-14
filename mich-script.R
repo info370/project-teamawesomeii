@@ -71,7 +71,7 @@ selected_features_high <- c("ACT", "greek", "PC", "siblings", "bgfriend","volunt
 #model
 
 # skipped classes plot
-skip_plot <- ggplot(mich_data, aes(x = skipped, y = colGPA, size=alcohol))  +
+skip_plot <- ggplot(mich_data, aes(x = skipped, y = colGPA))  +
   geom_point()
 skip_plot
 linearMod_skip <- lm(colGPA ~ skipped, data=mich_data)
@@ -81,11 +81,42 @@ skip_plot + geom_abline(slope=-0.08952, intercept = 3.15308)
 
 p <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=colGPA)) 
 p + geom_abline(slope=0.004655, intercept=3.047889)
+summary(linearMod)
 
 #basic linear model
 
 linearMod <- lm(colGPA ~ alcohol, data=mich_data)
 linearMod
+
+parameters <- tidy(linearMod)$estimate
+
+mich_data_small <- mich_data %>%
+  dplyr::select(alcohol, colGPA) %>%
+  mutate(linear_model_prediction = parameters[1] + parameters[2] * mich_data$alcohol)
+
+ggplot(mich_data_small , aes(alcohol)) +
+  geom_point(aes(y= colGPA), size = 1) +
+  geom_line(aes(y= linear_model_prediction), size = 1, colour = "grey30")
+
+model_linear_function <- function(a, data) {
+  a[1] + data$alcohol * a[2]
+}
+model_function = model_linear_function
+measure_distance <- function(mod_params, data) {
+  diff <- data$colGPA - model_function(mod_params, data)
+  sqrt(mean(diff ^ 2))
+}
+best <- optim(c(0, 0), measure_distance, data = mich_data)
+parameters
+best$par
+
+measure_distance_mad <- function(mod_params, data) {
+  diff <- data$colGPA - model_function(mod_params, data)
+  mean(abs(diff))
+}
+
+mad_fit <- optim(c(0, 0), measure_distance_mad, data = mich_data_small)
+mad_fit$par
 
 #correlation
 alc <- mich_data$alcohol
@@ -95,9 +126,11 @@ cor(skip,gpa)
 
 #residual plot
 mich_data$predAlc <- .004655*mich_data$alcohol + 3.047889
-mich_data$residGPA <- mich_data$colGPA - mich_data$predAlc
-p3 <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=residGPA))
+mich_data$predSkip <- -0.08952*mich_data$skipped + 3.15308
+mich_data$residGPA <- mich_data$colGPA - mich_data$predSkip
+p3 <- ggplot(data=mich_data) + geom_point(aes(x=skipped, y=residGPA))
 p3+geom_abline(slope=0, intercept = 0, color="red")
+sum(mich_data$residGPA)
 
 #splines modeling
 # mod2 <- lm(colGPA ~ ns(alcohol, 2), data=mich_data)

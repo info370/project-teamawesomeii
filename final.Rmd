@@ -32,9 +32,9 @@ To answer the quesiton of how much college student should drink if they want to 
 
 Our first dataset was found on Kaggle and contains data on high school students in a math course in Portugal. This data was collected by the University of California, Irvine's machine learning department using school reports and questionnaires. The outcome variable we were interested in for this data is labeled G3, representing the students' final grades for the school term, and is a numeric value ranging from 0 to 20. The predictor variable we were most interested in for this study was Dalc, which represents workday alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption). Another predictor variable we were interested in was absenses, which refers to a student's total absences from school, recorded as a numeric value ranging from 0 to 93.
 
-<explain michigan dataset>
+Our second dataset was found on StatCrunch and contains data about grades in Michigan State Unviersity, and looks at a variety of factors to see what affects GPA. The outcome variable was colGPA, which is the reported college GPA of students on a scale from 0.0 to 4.0. There was an alcohol attribute that was looked into by the study, as it is a factor that looks into how many days a week that a student drinks from 0 to 7, where is 0 is the student drinking 0 days a week, and 7 representing that the student drinks every day of the week. Another predictor variable we were interested in looking into was skipped, which refers to how often the student does not attend classes. It is measured by looking at how many lectures a student misses per week on average.
 
-<explain sleep study dataset>
+Our last dataset was found on StatCrunch and contained data from a study done on college students and measured variables like sleep times, gpa, drinking and various psychological test scores. The outcome variable that we used was GPA, which represented the student's grade on a 4.0 scale for that semester. The predictor vairables we examined were Drinks and ClassesMissed. Drinks represented the count of alcoholic beverages that the student consumed on a weekly basis. ClassesMissed represented the number of classes that the student missed over the course of that semester. 
 
 All three of our datasets were pretty clean to begin with in that they were not missing any entries and the individual observations did not seem inaccurate in any way. After reviewing the datasets, there were some factors that we decided we were not intestested in, which we filtered out. For instance, the UCI dataset contains data on first and second period grades, which were strongly correlated with final grades, however we were more interested in the correlations between outside factors so we removed those two factors from our analysis. 
 
@@ -87,7 +87,7 @@ importance <- varImp(model)
 ggplot(importance)
 ```
 
-To understand which variables are actually most important for predicting final creates we used feature selection, ranking features using K-Nearest Neighbors. As is shown in the chart above, the results show that absences are the most important feature for predicting G3. Dalc is ranked tenth, which strengthens our previous conclusion that there is only a week correlation between Dalc and G3. A different feature, Walc, represents weekend alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption). We chose not to investigate the relationship between weekend alcohol consumption and final grades because it is ranked twenty-first in the chart above, which is even lower than the ranking for Dalc, meaning there probably wouldn't be a very strong correlation.
+To understand which variables are actually most important for predicting final grades we used feature selection, ranking features using K-Nearest Neighbors. As is shown in the chart above, the results show that absences are the most important feature for predicting G3. Dalc is ranked tenth, which strengthens our previous conclusion that there is only a weak correlation between Dalc and G3. A different feature, Walc, represents weekend alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption). We chose not to investigate the relationship between weekend alcohol consumption and final grades because it is ranked twenty-first in the chart above, which is even lower than the ranking for Dalc, meaning there probably wouldn't be a very strong correlation.
 
 ***
 
@@ -107,6 +107,7 @@ all_plot <- ggplot(mich_data, aes(x = alcohol, y = colGPA))  +
 all_plot
 ```
 
+In the graph above, we plotted a scatter plot looking at the college GPA and compare it to the number of days the partipant drinks. Based on the graph, we did not find a correlation of any sort as there were people that didn't drink with high GPA's, people who did not drink and had relatively low GPAs, people who drank more frequently with relatively high GPA's, and people who drank more frequently with relatively low GPA's. We decided to see if there were any correlations if we clustered the data into two seperate groups, one being people who drank alcohol 3 or fewer days a week, and people who drank alchol for 4 or more days a week.
 
 ```{r}
 low_plot <- ggplot(low_drink, aes(x = alcohol, y = colGPA))  +
@@ -117,6 +118,7 @@ high_plot <- ggplot(high_drink, aes(x = alcohol, y = colGPA))  +
 high_plot
 ```
 
+The two plots above show the same scatter plot for the two clusters I mentioned above. There were more participants that drank less than 3 days a week compared to the heavier drinkers, but the patterns were similar for both. The data was fairly discrete as it was based on days they consume alcohol, so it is an integer value rather than a decimal day as you cannot drink for a half a day, it's a binary yes or no if you drink during a certain day. Both graphs show a spread of values for each integer value, as there were people for each day with fairly low GPA's and people with fairly high GPA's, and people with average GPA's so we could not make any correlation between grades and alcohol.
 
 ```{r}
 # feature selection
@@ -131,6 +133,7 @@ importance1 <- varImp(model1)
 ggplot(importance1)
 ```
 
+To understand which variables are actually most important for predicting final creates we used feature selection, ranking features using K-Nearest Neighbors. As is shown in the chart above, the results show that absences are the most important feature for predicting GPA. Alchol was actually the fifth least important factor when it comes to college GPA, as it is almost negligible when it comes to college GPA, which we also see in our scatter plot above.
 
 ```{r}
 # low
@@ -144,6 +147,7 @@ importance_low <- varImp(model_low)
 ggplot(importance_low)
 ```
 
+We did a similar important factor analysis for the people who do not drink or drink moderately. We removed high school GPA from our factor analysis because it was significantly more important than any other factor, and it makes logical sense because people who are good students in high school are most likely going to be good students in college. Skipped classes was once again the most important factor to college GPA, and alcohol was not as important as a factor, as it is not one of the top 10 most important factors. One thing we found interesting is that most important factors deal with more academic issues, such as class standing, their ACT scores, if they are an engineering student, or if they went to a Michigan high school
 
 ```{r}
 # high
@@ -155,6 +159,9 @@ model_high <- train(colGPA ~., data=colGPA_features_high, method = "knn", trCont
 importance_high <- varImp(model_high)
 ggplot(importance_high)
 ```
+
+We also did a similar important factor analysis for the people who drink more frequently. We once again removed high school GPA from our factor analysis because it was significantly more important than any other factor, and it makes logical sense because people who are good students in high school are most likely going to be good students in college. ACT grades were the most important factor to college GPA, and alcohol was more important as a factor, as it was one of the top 10 most important factors. One thing we found interesting is that most important factors deal with more social issues, such as having a boyfriend or girlfriend, being in the greek system, having siblings, and volunteering.
+
 
 ```{r}
 # fit linear model for colGPA using alcohol
@@ -169,6 +176,7 @@ p + geom_abline(slope=alcohol_parameters[2], intercept=alcohol_parameters[1], si
 cor(mich_data$alcohol,mich_data$colGPA)
 ```
 
+Above, we performed a linear regression and found a line that was almost horizontal, as the slope was very close to 0. We also looked into the correlation between alcohol and college GPA, and found the correlation value to be 0.017, which is a very weak positive relationship and signifying that there is almost no relationship between alcohol and college GPA.
 
 ```{r}
 # Residuals
@@ -177,6 +185,8 @@ mich_data$residGPA <- mich_data$colGPA - mich_data$predAlc
 p3 <- ggplot(data=mich_data) + geom_point(aes(x=alcohol, y=residGPA))
 p3+geom_abline(slope=0, intercept = 0)
 ```
+
+We also performed a residual analysis on our regression to make sure that we chose the right model instead of a quadratic regression. Based on our residual graph above, the linear regression was appropriate as they values were fairly close to 0 and was pretty random in being over or under the line.
 
 ***
 
@@ -193,6 +203,9 @@ p <- ggplot(sleep_data, aes(x = Drinks, y = GPA))  +
 p
 ```
 
+We removed all of the computed columns from the data set and used the values that determined them instead.
+The initial plot made for Drinks and GPA showed that most of the data is clustered in the region with little weekly drinking and high GPA.
+
 
 ```{r}
 # feature selection
@@ -202,83 +215,58 @@ importance <- varImp(model)
 ggplot(importance)
 ```
 
+To determine which of the variables in our data set would be the best predictor of GPA, we used the same KNN feature selection technique that we used for the other data sets. We found that Drinks was actually the most important factor for GPA. The other important finding in this chart is that classes missed is only moderately important to GPA, which is represented by an importance score of about 50 and only ranking as the 8th most important feature.  
 
 ```{r}
-# drinks linear model
-drinks_linear_model <- lm (GPA ~ Drinks, data = sleep_data)
-drinks_parameters <- tidy(drinks_linear_model)$estimate
-drinks_parameters
-```
 
-
-```{r}
-sleep_data_small <- sleep_data %>%
-  dplyr::select(Drinks, GPA) %>%
-  mutate(drinks_lm_prediction = drinks_parameters[1] + drinks_parameters[2] * sleep_data$Drinks)
-
-ggplot(sleep_data_small , aes(Drinks)) +
-  geom_point(aes(y= GPA), size = 1) +
-  geom_line(aes(y= drinks_lm_prediction), size = 1, colour = "red")
-```
-
-
-```{r}
-drinks_lm_function <- function(a, data) {
+model_linear_function <- function(a, data) {
   a[1] + data$Drinks * a[2]
 }
 
-drinks_measure_distance <- function(mod_params, data) {
-  diff <- data$GPA - drinks_lm_function(mod_params, data)
-  sqrt(mean(diff ^ 2))
-}
+drinks_lm_function = model_linear_function
 
-# line fit with squares of the residuals function
-drinks_best <- optim(c(3.4, 0), drinks_measure_distance, data = sleep_data_small)
-
-# values for the coefficients
-drinks_best$par
-# from lm() function
-drinks_parameters
-```
-
-
-```{r}
 drinks_measure_distance_mad <- function(mod_params, data) {
   diff <- data$GPA - drinks_lm_function(mod_params, data)
   mean(abs(diff))
 }
 
 # use mean absolute function to get distance
-drinks_mad_fit <- optim(c(3.4, 0), drinks_measure_distance_mad, data = sleep_data_small)
+drinks_mad_fit <- optim(c(3.4, 0), drinks_measure_distance_mad, data = sleep_data)
 drinks_mad_fit$par
 ```
 
 
 ```{r}
-sleep_data_small <- sleep_data_small %>%
+sleep_data_small <- sleep_data %>%
   mutate(lm_mad = drinks_mad_fit$par[1] + drinks_mad_fit$par[2] * sleep_data$Drinks)
 
 ggplot(sleep_data_small , aes(Drinks)) +
   geom_point(aes(y= GPA), size = 1) +
   geom_line(aes(y= lm_mad), size = 1, colour = "red")
 ```
+
+We decided to construct a linear model for our drinks by GPA plot using an absolute value function to fit our line, because the data was so tightly clustered in one part whil other regions were much more sparse. But given our model, we would predict that student grades would decrease by .03 grade points from 3.44 for every weekly drink they have. 
+
 ```{r}
 cor(sleep_data$Drinks, sleep_data$GPA)
 ```
+
+This is the correlation value between drinks and GPA, and we believe that it is high enough to indicate a moderate negative relationship between Drinks and GPA.
 
 ```{r}
 sleep_data_small <- sleep_data_small %>% 
   mutate(
     residuals_mad = GPA - lm_mad,
-    residuals = GPA - drinks_lm_prediction
+    residuals = GPA - lm_mad
   )
 
 # plot the residuals to compare them
-ggplot(sleep_data_small, aes(Drinks)) +
-  geom_point(aes(y=residuals), size = 1) + 
-  geom_point(aes(y=residuals_mad), size = 1, color = "red") +
+ggplot(sleep_data_small, aes(Drinks)) + 
+  geom_point(aes(y=residuals_mad), size = 1) +
   geom_abline(intercept=0, slope = 0)
 ```
+
+We constructed this residual plot to evaluate our linear model. Since the residual points seem to be fairly evenly distributed across the line, we think that the linear model was appropriate. 
 
 ***
 
@@ -394,6 +382,7 @@ skip_plot <- ggplot(mich_data, aes(x = skipped, y = colGPA, size=alcohol))  +
 skip_plot
 ```
 
+The data points are more concentrated to the left of the graph, meaning that most of our participants did not skip class frequently. We also used plot point size to signify the amount the student drank, and the points are fairly scattered, meaning that people who drink alcohol more frequently do not necessarily mean that they skip class more often.
 
 ```{r}
 # skipped vs colGPA linear model
@@ -406,6 +395,8 @@ skip_plot + geom_abline(slope=skipped_parameters[2], intercept = skipped_paramet
 # correlation
 cor(mich_data$skipped,mich_data$colGPA)
 ```
+
+We created a linear regression plot showing the relationship between skipped classes and college GPA, and the graph had a negetive regression slope, which signified that people who skipped more would have a worse GPA. The correlation value of -0.26 means that there is a significant negative relationship between the two factors, and this correlation is much stronger compared to the correlation between alcohol and college GPA.
 
 ***
 
@@ -499,12 +490,19 @@ cor(sleep_data$ClassesMissed, sleep_data$Drinks)
 
 When searching for data to use for our study we learned that there is limited data available on the subject matter specific to drinking and its direct relation to grades for college students. One major limitation that we faced was that it was hard to connect all three datasets together because they all came from different contexts and measured different features so their important actors were all different.
 
-The UCI dataset was particularly unhelpful because it represents the drinking behaviors of high school students from a different country, which we think is quite distinct from college students in the United States.git 
+The UCI dataset was particularly unhelpful because it represents the drinking behaviors of high school students from a different country, which we think is quite distinct from college students in the United States.
 
-As we did not collect the data in these three datasets ourselves, it was impossible for us to know exactly the types of drinks people consumed, exactly how frequently they drink throughout a school term, and also how drunk they actually get. Because the data we used had limited information, we had to assume that the number of drinks or days of drinking is representative of drinking behavior without knowing exactly how much someone drank at a given time.
+For the Michigan dataset, we were only given the amount of days that they consumed alcohol, and an issue with that is that we cannot quantify how much alcohol that the students drank. If a student drank 7 days, it could have meant that he could have only had a single beer every night, which would cause different effects than if someone consumed 5 beers each night for 4 nights, even though the data would lead us to believe that the person who reported 7 days would drink more.
+
+For the sleep dataset, we would have the a similar but opposite issue compared to the Michigan dataset as they report drinks consumed per week but not days they drank. If we look at two participants who consumed 15 drinks in a week, the affects would be different for a participant who consumed around 2 drinks a day for 7 days than a participant who consumed 5 drinks a day for 3 days.
+
+Another issue that we were not able to look into from the dataset is a hangover. The drinking data we look into sees the amount of drinks a person consumed or how often a person consumes alcohol, but we do not get to look into reprucussions that drinking can cause, such as hangovers. Hangovers can cause headaches, drowsiness, concentration issues, and other symptoms from periods of time that could last from 4 hours to an entire day. These symptoms would also detract student learning as they would not be able to concentrate on the material but rather focus on the discomfort that they are experiencing, and this phenomenon would provide more detrimental to a student's GPA than the act of drinking alcohol. 
+
+As we did not collect the data in these three datasets ourselves, it was impossible for us to know exactly the types of drinks people consumed, exactly how frequently they drink throughout a school term, and also how drunk they actually get. Because the data we used had limited information, we had to assume that the number of drinks or days of drinking is representative of drinking behavior without knowing exactly how much someone drank at a given time. 
+
 
 ## Future Work
 
 A more controlled experiment would certainly give us more insight on the relationship between alcohol and students' grades. In future studies, it would be interesting to track more distinct and exhaustive factors, such as the frequency, specific days of week, and number of standard drinks consumed by a much more consistent population of college students. An experiment of this design would help gain a deeper understanding about the relationships between each factor and grades.
 
-Other important factors that we want to explore are the quesitons about what type of alcohol is consumed and whether drinking alcohol will affect performance consistently across different people. The type of drink is important becuase there are many other food chemicals that will have significant effectos on brain activity that should be accounted for. There may also be some relevant and underlying social behavior associated with drinking for different people, so it would also be interesting to pay more attention to the number of drinks a person has, what type of drinks they are having, how often they drink, and their body weight for calculating BAC (standard measure of drunkeness across different people) when collecting data. Future studies should track exactly how much participants drink because different amounts of alcohol affect people differently and some people have different defintitions of what they would consider "light" or "heavy" drinking.
+Other important factors that we want to explore are the quesitons about what type of alcohol is consumed and whether drinking alcohol will affect performance consistently across different people. The type of drink is important becuase there are many other food chemicals that will have significant effectos on brain activity that should be accounted for. There may also be some relevant and underlying social behavior associated with drinking for different people, so it would also be interesting to pay more attention to the number of drinks a person has, what type of drinks they are having, how often they drink, and their body weight for calculating BAC (standard measure of drunkeness across different people) when collecting data. If the time that a drink is taken is also recorded for students, we could also gain more insights about how different behaviors, like binge drinking compared to moderate drinking, affect grades. Future studies should track exactly how much participants drink because different amounts of alcohol affect people differently and some people have different defintitions of what they would consider "light" or "heavy" drinking.

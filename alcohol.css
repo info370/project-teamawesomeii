@@ -42,6 +42,12 @@ body {
     margin-left: 5%;
 }
 
+p {
+	margin-left: 5%;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
 .slide h2 {
     font-size: 24px;
 }
@@ -69,6 +75,7 @@ img {
     margin-left: 20%;
     margin-right: 20%;
 }
+
 
 .arrow {
     position: fixed;

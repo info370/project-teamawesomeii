@@ -54,8 +54,13 @@ absences_model_data <- uci_data %>%
   mutate(
     linear_model_prediction = parameters[1] + parameters[2] * uci_data$absences
   )
+<<<<<<< HEAD
+summary(linear_model)
+ggplot(uci_data , aes(absences)) +
+=======
 
 ggplot(absences_model_data , aes(absences)) +
+>>>>>>> 26c2f04daeacb63acf09a7dad1c583f8e128a57a
   geom_point(aes(y= G3)) +
   geom_line(aes(y= linear_model_prediction), color = "red")
 
