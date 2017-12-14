@@ -87,7 +87,7 @@ importance <- varImp(model)
 ggplot(importance)
 ```
 
-To understand which variables are actually most important for predicting final creates we used feature selection, ranking features using K-Nearest Neighbors. As is shown in the chart above, the results show that absences are the most important feature for predicting G3. Dalc is ranked tenth, which strengthens our previous conclusion that there is only a week correlation between Dalc and G3. A different feature, Walc, represents weekend alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption). We chose not to investigate the relationship between weekend alcohol consumption and final grades because it is ranked twenty-first in the chart above, which is even lower than the ranking for Dalc, meaning there probably wouldn't be a very strong correlation.
+To understand which variables are actually most important for predicting final grades we used feature selection, ranking features using K-Nearest Neighbors. As is shown in the chart above, the results show that absences are the most important feature for predicting G3. Dalc is ranked tenth, which strengthens our previous conclusion that there is only a weak correlation between Dalc and G3. A different feature, Walc, represents weekend alcohol consumption, and is a numeric value ranging from 1 (very low workday alcohol consumption) to 5 (very high workday alcohol consumption). We chose not to investigate the relationship between weekend alcohol consumption and final grades because it is ranked twenty-first in the chart above, which is even lower than the ranking for Dalc, meaning there probably wouldn't be a very strong correlation.
 
 ***
 
@@ -203,6 +203,9 @@ p <- ggplot(sleep_data, aes(x = Drinks, y = GPA))  +
 p
 ```
 
+We removed all of the computed columns from the data set and used the values that determined them instead.
+The initial plot made for Drinks and GPA showed that most of the data is clustered in the region with little weekly drinking and high GPA.
+
 
 ```{r}
 # feature selection
@@ -212,83 +215,58 @@ importance <- varImp(model)
 ggplot(importance)
 ```
 
+To determine which of the variables in our data set would be the best predictor of GPA, we used the same KNN feature selection technique that we used for the other data sets. We found that Drinks was actually the most important factor for GPA. The other important finding in this chart is that classes missed is only moderately important to GPA, which is represented by an importance score of about 50 and only ranking as the 8th most important feature.  
 
 ```{r}
-# drinks linear model
-drinks_linear_model <- lm (GPA ~ Drinks, data = sleep_data)
-drinks_parameters <- tidy(drinks_linear_model)$estimate
-drinks_parameters
-```
 
-
-```{r}
-sleep_data_small <- sleep_data %>%
-  dplyr::select(Drinks, GPA) %>%
-  mutate(drinks_lm_prediction = drinks_parameters[1] + drinks_parameters[2] * sleep_data$Drinks)
-
-ggplot(sleep_data_small , aes(Drinks)) +
-  geom_point(aes(y= GPA), size = 1) +
-  geom_line(aes(y= drinks_lm_prediction), size = 1, colour = "red")
-```
-
-
-```{r}
-drinks_lm_function <- function(a, data) {
+model_linear_function <- function(a, data) {
   a[1] + data$Drinks * a[2]
 }
 
-drinks_measure_distance <- function(mod_params, data) {
-  diff <- data$GPA - drinks_lm_function(mod_params, data)
-  sqrt(mean(diff ^ 2))
-}
+drinks_lm_function = model_linear_function
 
-# line fit with squares of the residuals function
-drinks_best <- optim(c(3.4, 0), drinks_measure_distance, data = sleep_data_small)
-
-# values for the coefficients
-drinks_best$par
-# from lm() function
-drinks_parameters
-```
-
-
-```{r}
 drinks_measure_distance_mad <- function(mod_params, data) {
   diff <- data$GPA - drinks_lm_function(mod_params, data)
   mean(abs(diff))
 }
 
 # use mean absolute function to get distance
-drinks_mad_fit <- optim(c(3.4, 0), drinks_measure_distance_mad, data = sleep_data_small)
+drinks_mad_fit <- optim(c(3.4, 0), drinks_measure_distance_mad, data = sleep_data)
 drinks_mad_fit$par
 ```
 
 
 ```{r}
-sleep_data_small <- sleep_data_small %>%
+sleep_data_small <- sleep_data %>%
   mutate(lm_mad = drinks_mad_fit$par[1] + drinks_mad_fit$par[2] * sleep_data$Drinks)
 
 ggplot(sleep_data_small , aes(Drinks)) +
   geom_point(aes(y= GPA), size = 1) +
   geom_line(aes(y= lm_mad), size = 1, colour = "red")
 ```
+
+We decided to construct a linear model for our drinks by GPA plot using an absolute value function to fit our line, because the data was so tightly clustered in one part whil other regions were much more sparse. But given our model, we would predict that student grades would decrease by .03 grade points from 3.44 for every weekly drink they have. 
+
 ```{r}
 cor(sleep_data$Drinks, sleep_data$GPA)
 ```
+
+This is the correlation value between drinks and GPA, and we believe that it is high enough to indicate a moderate negative relationship between Drinks and GPA.
 
 ```{r}
 sleep_data_small <- sleep_data_small %>% 
   mutate(
     residuals_mad = GPA - lm_mad,
-    residuals = GPA - drinks_lm_prediction
+    residuals = GPA - lm_mad
   )
 
 # plot the residuals to compare them
-ggplot(sleep_data_small, aes(Drinks)) +
-  geom_point(aes(y=residuals), size = 1) + 
-  geom_point(aes(y=residuals_mad), size = 1, color = "red") +
+ggplot(sleep_data_small, aes(Drinks)) + 
+  geom_point(aes(y=residuals_mad), size = 1) +
   geom_abline(intercept=0, slope = 0)
 ```
+
+We constructed this residual plot to evaluate our linear model. Since the residual points seem to be fairly evenly distributed across the line, we think that the linear model was appropriate. 
 
 ***
 
